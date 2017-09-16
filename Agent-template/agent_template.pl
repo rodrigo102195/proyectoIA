@@ -47,7 +47,7 @@ run:-
 decide_action(Action):-
 	at([agent, me], MyNode),
 	at([gold, GName], MyNode),
-	write('Encontré un tesoro: '), write(GName), write('!!!'),nl,
+	write('Encontrï¿½ un tesoro: '), write(GName), write('!!!'),nl,
         write('voy a intentar tomarlo...'),nl,
         Action = pickup([gold, GName]).
 
@@ -64,7 +64,7 @@ decide_action(Action):-
 decide_action(Action):-
 	at([agent, me], MyNode),
 	findall(Node, ady(MyNode, Node), PossibleDestNodes),
-	random_member(DestNode, PossibleDestNodes), % Selecciona aleatoriamente una posición destino.
+	random_member(DestNode, PossibleDestNodes), % Selecciona aleatoriamente una posiciï¿½n destino.
 	Action = move(DestNode).
 
 
@@ -84,7 +84,7 @@ decide_action(Action):-
 %
 % start_ag
 %
-% Solicita la registración al juego, y recuerda su nombre.
+% Solicita la registraciï¿½n al juego, y recuerda su nombre.
 
 
 start_ag:- AgName = template,
@@ -103,9 +103,9 @@ s:- start_ag.
 %
 % start_ag_instance(+InstanceID)
 %
-% Solicita la registración al juego de una instancia, y recuerda su
-% nombre, que será el de la versión original seguido del InstanceID
-% entre paréntesis.
+% Solicita la registraciï¿½n al juego de una instancia, y recuerda su
+% nombre, que serï¿½ el de la versiï¿½n original seguido del InstanceID
+% entre parï¿½ntesis.
 
 
 start_ag_instance(InstanceID):-
