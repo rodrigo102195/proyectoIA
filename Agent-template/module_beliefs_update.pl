@@ -35,6 +35,8 @@ update_beliefs(Perc):-
 	forall(member(entity_descr(Id,Desc), Perc), updateDesc(entity_descr(Id,Desc))),
 	forall(member(at(Ent,NodeId), Perc), updateAt(at(Ent,NodeId), Perc)),
 	forall(member(has(Owner,Item), Perc), updateHas(has(Owner,Item))),
+	cleanMissingAt(Perc),
+	cleanMissingHas(Perc),
 
 	% Se agregan los nodos en el rango de vision que no estan en la KB
 	forall(member(node(Id,Vec,Ady), Perc), addNode(node(Id,Vec,Ady))).
@@ -44,8 +46,34 @@ addNode(Fact):- not(Fact), assert(Fact).
 addNode(_).
 
 % Actualiza las descripciones de las entidades
-updateDesc(Fact):- not(Fact), assert(Fact).
-updateDesc(_).
+updateDesc(entity_descr(Id,Desc)):- entity_descr(Id,_), retract(entity_descr(Id,_)), assert(entity_descr(Id,Desc)).
+updateDesc(entity_descr(Id,Desc)):- assert(entity_descr(Id,Desc)).
+
+% Se eliminan de la KB los objetos que se perdio se vista
+cleanMissingAt(Perc):- forall(member(node(Id,_,_), Perc), cleanMissingAtAux(Id, Perc)).
+
+cleanMissingAtAux(NodeId, Perc):-
+	at([_,EntId],NodeId),
+	not(member(at([_,EntId],NodeId), Perc)),
+	retract(at([_,EntId],_)),
+	retract(atPos([_,EntId],_)).
+
+cleanMissingAtAux(_,_).
+
+% Se eliminan de la KB los objetos que ya no son poseidos
+cleanMissingHas(Perc):- forall(member(node(Id,_,_), Perc), cleanMissingHasAux(Id, Perc)).
+
+cleanMissingHasAux(NodeId, Perc):-
+	member(at([_,OwnerId],NodeId), Perc),
+	forall(has([_,OwnerId],Item), checkHasExistence(has([_,OwnerId],Item), Perc)).
+
+cleanMissingHasAux(_,_).
+
+checkHasExistence(has([_,OwnerId],Item), Perc):-
+	not(member(has([_,OwnerId],Item), Perc)),
+	retract(has([_,OwnerId],Item)).
+
+checkHasExistence(_,_).
 
 % Si el objeto se encontraba en posesion de una entidad y ahora esta en el mapa, entonces se actualiza esa informacion en la KB
 updateAt(at([Type,Id],NodeId), Perc):-
