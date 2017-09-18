@@ -50,19 +50,19 @@ cambiar_costos([[CostoActual,Header1,Header2|RestoActual]|RestoActual],[[NuevoCo
 	node(Header1,Vec1,_Ady),
 	node(Header2,Vec2,_Ady2),
 	distance(Vec1,Vec2,Distancia),
-	NuevoCosto is CostoActual+NuevoCosto,
+	NuevoCosto is CostoActual+Distancia,
 	cambiar_costos(RestoActual,RestoActual2).
 
 
 %elegir_mejor_camino(+Caminos,+Metas,-MejorCamino)
 %Devuelve el mejor de los caminos para un dado conjunto de Metas
 %El mejor camino será aquel que esté mas cercano a una de las metas
-elegir_mejor_camino([UnicoCamino],Metas,UnicoCamino):-!. %Habría que probarlo sin la negación por falla?
+elegir_mejor_camino([UnicoCamino],_Metas,UnicoCamino):-!. %Habría que probarlo sin la negación por falla?
 elegir_mejor_camino([[Costo1,Header1|Resto1],[Costo2,Header2|_Resto2]|RestoListas],Metas,MejorCamino):-
 	node(Header1,Pos1,_Ady), node(Header2,Pos2,_Ady2),
 	menorDistancia(Pos1,Metas,MenorDist1),
 	menorDistancia(Pos2,Metas,MenorDist2),
-	MenorDist1 + Costo1 <= MenorDist2 + Costo2,
+	MenorDist1 + Costo1 =< MenorDist2 + Costo2,
 	elegir_mejor_camino([[Costo1,Header1|Resto1]|RestoListas],Metas,MejorCamino).
 
 elegir_mejor_camino([[Costo1,Header1|_Resto1],[Costo2,Header2|Resto2]|RestoListas],Metas,MejorCamino):-
@@ -82,15 +82,15 @@ menorDistancia(VectorMiNodo,[IdObservado],MenorDistancia):-
 menorDistancia(VectorMiNodo,[IdObservado1,IdObservado2|RestoIds],MenorDistancia):-
 	node(IdObservado1,VectorObservado1,_AdyObs1),
 	node(IdObservado2,VectorObservado2,_AdyObs2),
-	distance(VectorMiNodo,IdObservado1,Distancia1),
-	distance(VectorMiNodo,IdObservado2,Distancia2),
-	Distancia1<=Distancia2,
+	distance(VectorMiNodo,VectorObservado1,Distancia1),
+	distance(VectorMiNodo,VectorObservado2,Distancia2),
+	Distancia1=<Distancia2,
 	menorDistancia(VectorMiNodo,[IdObservado1|RestoIds],MenorDistancia).
 
 	menorDistancia(VectorMiNodo,[IdObservado1,IdObservado2|RestoIds],MenorDistancia):-
 		node(IdObservado1,VectorObservado1,_AdyObs1),
 		node(IdObservado2,VectorObservado2,_AdyObs2),
-		distance(VectorMiNodo,IdObservado1,Distancia1),
-		distance(VectorMiNodo,IdObservado2,Distancia2),
+		distance(VectorMiNodo,VectorObservado1,Distancia1),
+		distance(VectorMiNodo,VectorObservado2,Distancia2),
 		Distancia1>Distancia2,
 		menorDistancia(VectorMiNodo,[IdObservado2|RestoIds],MenorDistancia).
