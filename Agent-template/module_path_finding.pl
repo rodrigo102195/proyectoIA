@@ -14,7 +14,7 @@
 %Plan: Lista de id de los nodos que deberíamos tomar
 %Destino: Es el id del nodo destino al cual nos dirigimos
 buscar_plan_desplazamiento(Metas, Plan, Destino):-
-	at([agent,me],MyPos),write('mi posicion es '),writeln(MyPos),not(Metas=[]) ,write('y'),a_estrella([[0,MyPos]],Metas,PlanReverso,Destino),write('j'), reverse(PlanReverso,[H|Plan]),write('h').
+	at([agent,me],MyPos),write('mi posicion es '),writeln(MyPos),write('las metas son: '),writeln(Metas),not(Metas=[]) ,write('y'),a_estrella([[0,MyPos]],Metas,PlanReverso,Destino),!,write('j'), reverse(PlanReverso,[H|Plan]),write('h').
 
 %a_estrella(+Caminos,+Metas,-Plan,-Destino)
 %Caso base: Si existe un camino tal que contenga a una de las metas entonces ya lo encontré.
@@ -27,13 +27,11 @@ a_estrella(Caminos,Metas,[Header|RestoCamino],Header):-
 % Agrego los nuevos caminos producto de mirar los adyacentes del mejor camino
 %Llamo al a_estrella con los caminos sin el mejor camino mas los nuevos caminos
 a_estrella(Caminos,Metas,Plan,Destino):-
-write('----------------------------------------------'),
 	elegir_mejor_camino(Caminos,Metas,MejorCamino),
 	delete(Caminos,MejorCamino,CaminosSinElMejor),
 	generar_nuevos_caminos(MejorCamino,NuevosCaminos),
-	%write('El mejor camino es: '),writeln(MejorCamino),
+	write('El mejor camino es: '),writeln(MejorCamino),
 	append(CaminosSinElMejor,NuevosCaminos,CaminosActualizados),
-	write('Llegueee!'),
 	a_estrella(CaminosActualizados,Metas,Plan,Destino).
 
 %generar_nuevos_caminos(+Camino,-NuevosCaminos)

@@ -67,34 +67,37 @@ decide_action(Action):-
     write('El plan existe 1'),nl,
     retractall(plan(_)),write('k'),nl,
     retractall(intention(_)),write('kk'),nl,
-    Action = move(node(SiguienteNodo,_Vector_Ady)),write('aca termino che').
+    Action = move(SiguienteNodo),write('La accion a realizar es: '),write(Action).
 
 decide_action(Action):-
-  write('claaaaroo'),plan(H),
+ write('claaaaroo'),plan(H),
   nl,write('el plan es222: '),write(H),write('jijijiji'),nl,nl,
   plan([SiguienteNodo|Resto]),
   write('El plan existe 2'),nl,
   retractall(plan(_)),write('k'),nl,
   assert(plan(Resto)),write('k'),nl,
-  Action = move(node(SiguienteNodo,_Vector,_Ady)),write('Aca termino che').
+  Action = move(SiguienteNodo),write('La accion a realizar es: '),write(Action).
 
 decide_action(Action):-
   write('a'),nl,
+
   findall(IdNodo,at([gold,_IdEnt],IdNodo),Metas),
   write('b'),nl,writeln(Metas),nl,
   buscar_plan_desplazamiento(Metas,Plan,Destino),
-  write('c'),nl,
+  retractall(plan(_)),
+  retractall(intention(_)),
   assert(plan(Plan)),
   write('d'),nl,
   assert(intention(Destino)),
-  write('e'),nl,
+  write('e'),nl,plan(H),
+  write('el plan a realizar es: '),write(plan(H)),nl,
   decide_action(Action), write('f'),nl.
 
 decide_action(Action):-
 	at([agent, me], MyNode),
 	findall(Node, ady(MyNode, Node), PossibleDestNodes),
 	random_member(DestNode, PossibleDestNodes), % Selecciona aleatoriamente una posici�n destino.
-	Action = move(DestNode).
+	Action = move(DestNode),write('La accion a realizar essss '), write(Action).
 
 
 
