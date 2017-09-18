@@ -47,7 +47,7 @@ run:-
 decide_action(Action):-
 	at([agent, me], MyNode),
 	at([gold, GName], MyNode),
-	write('Encontr� un tesoro: '), write(GName), write('!!!'),nl,
+	write('Encontró un tesoro: '), write(GName), write('!!!'),nl,
         write('voy a intentar tomarlo...'),nl,
         Action = pickup([gold, GName]).
 
@@ -61,8 +61,8 @@ decide_action(Action):-
 	Action = attack([agent, Target]).
 
 decide_action(Action):-
-  write('Primer caso de A*'), nl,
   plan(H),
+  write('Primer caso de A*'), nl,
   write('El plan es: '), write(H), nl,
   plan([SiguienteNodo|[]]),
   retractall(plan(_)),
@@ -71,8 +71,8 @@ decide_action(Action):-
   write('La accion a realizar es: '), write(Action), nl.
 
 decide_action(Action):-
-  write('Segundo caso de A*'), nl,
   plan(H),
+  write('Segundo caso de A*'), nl,
   write('El plan es: '), write(H), nl,
   plan([SiguienteNodo|Resto]),
   retractall(plan(_)),
@@ -81,8 +81,8 @@ decide_action(Action):-
   write('La accion a realizar es: '), write(Action), nl.
 
 decide_action(Action):-
-  write('Tercer caso de A*'), nl,
   findall(IdNodo,at([gold,_IdEnt],IdNodo),Metas),
+  write('Tercer caso de A*'), nl,
   write('Metas: '), writeln(Metas), nl,
   buscar_plan_desplazamiento(Metas,Plan,Destino),
   assert(plan(Plan)),
@@ -92,6 +92,7 @@ decide_action(Action):-
   write('La accion a realizar es: '), write(Action), nl.
 
 decide_action(Action):-
+  write('Movimiento aleatorio'), nl,
 	at([agent, me], MyNode),
 	findall(Node, ady(MyNode, Node), PossibleDestNodes),
 	random_member(DestNode, PossibleDestNodes), % Selecciona aleatoriamente una posición destino.
