@@ -14,7 +14,7 @@
 %Plan: Lista de id de los nodos que deberíamos tomar
 %Destino: Es el id del nodo destino al cual nos dirigimos
 buscar_plan_desplazamiento(Metas, Plan, Destino):-
-	at([agent,me],MyPos),not(Metas=[]) ,a_estrella([[0,MyPos]],Metas,Plan,DestinoReverso), reverse(DestinoReverso,Destino).
+	at([agent,me],MyPos),write('mi posicion es '),writeln(MyPos),not(Metas=[]) ,write('y'),a_estrella([[0,MyPos]],Metas,PlanReverso,Destino),write('j'), reverse(PlanReverso,[H|Plan]),write('h').
 
 %a_estrella(+Caminos,+Metas,-Plan,-Destino)
 %Caso base: Si existe un camino tal que contenga a una de las metas entonces ya lo encontré.
@@ -27,10 +27,13 @@ a_estrella(Caminos,Metas,[Header|RestoCamino],Header):-
 % Agrego los nuevos caminos producto de mirar los adyacentes del mejor camino
 %Llamo al a_estrella con los caminos sin el mejor camino mas los nuevos caminos
 a_estrella(Caminos,Metas,Plan,Destino):-
+write('----------------------------------------------'),
 	elegir_mejor_camino(Caminos,Metas,MejorCamino),
 	delete(Caminos,MejorCamino,CaminosSinElMejor),
 	generar_nuevos_caminos(MejorCamino,NuevosCaminos),
+	%write('El mejor camino es: '),writeln(MejorCamino),
 	append(CaminosSinElMejor,NuevosCaminos,CaminosActualizados),
+	write('Llegueee!'),
 	a_estrella(CaminosActualizados,Metas,Plan,Destino).
 
 %generar_nuevos_caminos(+Camino,-NuevosCaminos)
@@ -46,12 +49,12 @@ generar_nuevos_caminos([CostoActual,HeaderActual|RestoActual],NuevosCaminos):-
 %cambiar_costos(+Caminos,-CaminosActualizados)
 %Actualiza los costos de cada camino por el nuevo nodo agregado
 cambiar_costos([],[]):-!.
-cambiar_costos([[CostoActual,Header1,Header2|RestoActual]|RestoActual],[[NuevoCosto,Header1,Header2|RestoActual]|RestoActual2]):-
+cambiar_costos([[CostoActual,Header1,Header2|RestoActual]|RestoActual1],[[NuevoCosto,Header1,Header2|RestoActual]|RestoActual2]):-
 	node(Header1,Vec1,_Ady),
 	node(Header2,Vec2,_Ady2),
 	distance(Vec1,Vec2,Distancia),
 	NuevoCosto is CostoActual+Distancia,
-	cambiar_costos(RestoActual,RestoActual2).
+	cambiar_costos(RestoActual1,RestoActual2).
 
 
 %elegir_mejor_camino(+Caminos,+Metas,-MejorCamino)

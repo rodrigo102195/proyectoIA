@@ -60,6 +60,35 @@ decide_action(Action):-
 	pos_in_attack_range(MyPos, TPos),
 	Action = attack([agent, Target]).
 
+decide_action(Action):-
+  write('siiiii'),plan(H),
+  nl,write('el plan es111: '),write(H),write('jijijiji'),nl,nl,
+    plan([SiguienteNodo|[]]),
+    write('El plan existe 1'),nl,
+    retractall(plan(_)),write('k'),nl,
+    retractall(intention(_)),write('kk'),nl,
+    Action = move(node(SiguienteNodo,_Vector_Ady)),write('aca termino che').
+
+decide_action(Action):-
+  write('claaaaroo'),plan(H),
+  nl,write('el plan es222: '),write(H),write('jijijiji'),nl,nl,
+  plan([SiguienteNodo|Resto]),
+  write('El plan existe 2'),nl,
+  retractall(plan(_)),write('k'),nl,
+  assert(plan(Resto)),write('k'),nl,
+  Action = move(node(SiguienteNodo,_Vector,_Ady)),write('Aca termino che').
+
+decide_action(Action):-
+  write('a'),nl,
+  findall(IdNodo,at([gold,_IdEnt],IdNodo),Metas),
+  write('b'),nl,writeln(Metas),nl,
+  buscar_plan_desplazamiento(Metas,Plan,Destino),
+  write('c'),nl,
+  assert(plan(Plan)),
+  write('d'),nl,
+  assert(intention(Destino)),
+  write('e'),nl,
+  decide_action(Action), write('f'),nl.
 
 decide_action(Action):-
 	at([agent, me], MyNode),
