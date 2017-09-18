@@ -14,13 +14,14 @@
 %Plan: Lista de id de los nodos que deberíamos tomar
 %Destino: Es el id del nodo destino al cual nos dirigimos
 buscar_plan_desplazamiento(Metas, Plan, Destino):-
-	at([agent,me],MyPos),write('mi posicion es '),writeln(MyPos),write('las metas son: '),writeln(Metas),not(Metas=[]) ,write('y'),a_estrella([[0,MyPos]],Metas,PlanReverso,Destino),!,write('j'), reverse(PlanReverso,[H|Plan]),write('h').
+	at([agent,me],MyPos),write('mi posicion es '),writeln(MyPos),write('las metas son: '),writeln(Metas),not(Metas=[]) ,write('y'),a_estrella([[0,MyPos]],Metas,PlanReverso,Destino),!,write('j'), reverse(PlanReverso,[_MiPosicion|Plan]),write('h').
 
 %a_estrella(+Caminos,+Metas,-Plan,-Destino)
 %Caso base: Si existe un camino tal que contenga a una de las metas entonces ya lo encontré.
 a_estrella(Caminos,Metas,[Header|RestoCamino],Header):-
-	member([_C,Header|RestoCamino],Caminos),
-	member(Header,Metas).
+	member([C,Header|RestoCamino],Caminos),
+	member(Header,Metas), elegir_mejor_camino(Caminos,Metas,[C1|_]),
+	C1==C.
 
 %Caso Recursivo:
 %	Elijo el mejor Camino, lo elimino de la lista de Caminos
@@ -30,10 +31,31 @@ a_estrella(Caminos,Metas,Plan,Destino):-
 	elegir_mejor_camino(Caminos,Metas,MejorCamino),
 	delete(Caminos,MejorCamino,CaminosSinElMejor),
 	generar_nuevos_caminos(MejorCamino,NuevosCaminos),
-	write('El mejor camino es: '),writeln(MejorCamino),
-	append(CaminosSinElMejor,NuevosCaminos,CaminosActualizados),
+	write('El costo del mejor camino es mejor camino es: '),MejorCamino=[H|T],write(H),nl,
+	limpiar_caminos(Caminos, NuevosCaminos,NuevosCaminosSinRepetidos), %Para que los nuevos caminos que pasen por un mismo nodo que los caminos viejos y sean mas costosos no aparezcan
+	write('los nuevos caminos sin repetir son: '),write(NuevosCaminosSinRepetidos),nl,
+	%remove...%Eliminar de los caminos viejos todos los caminos que contengan algun nodo de los nuevos nodos agregados en los caminos nuevos
+	append(CaminosSinElMejor,NuevosCaminosSinRepetidos,CaminosActualizados),
 	a_estrella(CaminosActualizados,Metas,Plan,Destino).
 
+%Si nosotros ya agregamos un nuevo camino que como cabeza pertenece a un elemento de los caminos viejos entonces el camino viejo debería desaparecer
+%eliminar_caminos_viejos(CaminosViejos,CaminosNuevos,CaminosViejosSinRepetidos):-
+
+%Terminamos de recorrer los caminos nuevos
+limpiar_caminos(_Caminos,[],[]):-!. %Termine de limpiar los caminos
+%Si tenemos un camino viejo con el mismo header que el camino nuevo, y el camino viejo es peor entonces es necesario agregar el nuevo camino
+limpiar_caminos(Caminos,[[CostoCaminoNuevo,HeaderCaminoNuevo|RestoCaminoNuevo]|ColaCaminosNuevos],[[CostoCaminoNuevo,HeaderCaminoNuevo|RestoCaminoNuevo]|Z]):-
+	forall(member([CostoCamino,HeaderCaminoNuevo|_RestoCamino],Caminos),CostoCaminoNuevo<CostoCamino),
+	limpiar_caminos(Caminos,ColaCaminosNuevos,Z). %para cada uno de los caminos me fijo si el nuevo nodo del camino nuevo existe en un camino viejo y además este nuevo caminos es mejor
+
+%Si tenemos un camino nuevo con un header que no es miembro de ninguno de los caminos viejos entonces es necesario agregarlo
+limpiar_caminos(Caminos,[[CostoCaminoNuevo,HeaderCaminoNuevo|RestoCaminoNuevo]|ColaCaminosNuevos],[[CostoCaminoNuevo,HeaderCaminoNuevo|RestoCaminoNuevo]|Z]):-
+	forall(member([_CostoCamino|RestoCamino],Caminos),not(member(HeaderCaminoNuevo,RestoCamino))),
+	limpiar_caminos(Caminos,ColaCaminosNuevos,Z).
+
+%Sino quiere decir que el camino viejo es mejor o bien el nuevo camino agregado pasa por un nodo que es parte de un camino viejo
+limpiar_caminos(Caminos,[_PrimerCaminoNuevo|ColaCaminosNuevos],Z):-
+		limpiar_caminos(Caminos,ColaCaminosNuevos,Z).
 %generar_nuevos_caminos(+Camino,-NuevosCaminos)
 %Te genera todos los nuevos caminos posibles a partir de los adyacentes del último elemento del camino
 generar_nuevos_caminos([CostoActual,HeaderActual|RestoActual],NuevosCaminos):-
