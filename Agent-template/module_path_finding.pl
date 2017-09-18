@@ -33,8 +33,26 @@ a_estrella(Caminos,Metas,Plan,Destino):-
 	append(CaminosSinElMejor,NuevosCaminos,CaminosActualizados),
 	a_estrella(CaminosActualizados,Metas,Plan,Destino).
 
+%generar_nuevos_caminos(+Camino,-NuevosCaminos)
+%Te genera todos los nuevos caminos posibles a partir de los adyacentes del último elemento del camino
 generar_nuevos_caminos([CostoActual,HeaderActual|RestoActual],NuevosCaminos):-
-	node(HeaderActual,_Vector,)
+	node(HeaderActual,_Vec,Ady),
+	findall([CostoActual,NuevoHeader,HeaderActual|RestoActual],
+	(member([NuevoHeader,_Costo],Ady), %Fijarse si se podría haber agregado el nuevo costo acá
+	not(member(NuevoHeader,RestoActual))), %Control de ciclos
+	ListaNueva),
+	cambiar_costos(ListaNueva,NuevosCaminos).
+
+%cambiar_costos(+Caminos,-CaminosActualizados)
+%Actualiza los costos de cada camino por el nuevo nodo agregado
+cambiar_costos([],[]):-!.
+cambiar_costos([[CostoActual,Header1,Header2|RestoActual]|RestoActual],[[NuevoCosto,Header1,Header2|RestoActual]|RestoActual2]):-
+	node(Header1,Vec1,_Ady),
+	node(Header2,Vec2,_Ady2),
+	distance(Vec1,Vec2,Distancia),
+	NuevoCosto is CostoActual+NuevoCosto,
+	cambiar_costos(RestoActual,RestoActual2).
+
 
 %elegir_mejor_camino(+Caminos,+Metas,-MejorCamino)
 %Devuelve el mejor de los caminos para un dado conjunto de Metas
