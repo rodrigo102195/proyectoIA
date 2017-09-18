@@ -55,7 +55,9 @@ display_ag.
 display_entity(Entity):-
 	at(Entity, Pos),
 	atPos(Entity, Vector),
-	write(' '), write(Entity), write(' at '), write(Pos), write(' ('), write(Vector), write(')'), write('.'),
+	atPos([_,EntId], Vector),
+	lastSeen(EntId, Time),
+	write(' '), write(Entity), write(' at '), write(Pos), write(' ('), write(Vector), write(')'), write(' last seen '), write(Time), write('.'),
 	implies(Entity = [agent, _], nl),
 	entity_descr(Entity, Descr),
 	write('  Descr: '), write(Descr), write('.'),

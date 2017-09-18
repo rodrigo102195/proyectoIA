@@ -6,10 +6,11 @@
 	    at/2,
 	    atPos/2,
 	    has/2,
-	    entity_descr/2
+	    entity_descr/2,
+			lastSeen/2
 	  ]).
 
-:- dynamic time/1, node/3, at/2, atPos/2, has/2, entity_descr/2.
+:- dynamic time/1, node/3, at/2, atPos/2, has/2, entity_descr/2, lastSeen/2.
 
 % lastSeen(Id,Time)
 
@@ -33,8 +34,8 @@ update_beliefs(Perc):-
 	% Se agrega a la KB la informacion nueva, actualizando la antigua si es necesario
 	member(time(T), Perc), assert(time(T)),
 	forall(member(entity_descr(Id,Desc), Perc), updateDesc(entity_descr(Id,Desc))),
-	forall(member(at(Ent,NodeId), Perc), updateAt(at(Ent,NodeId), Perc)),
-	forall(member(has(Owner,Item), Perc), updateHas(has(Owner,Item))),
+	forall(member(at(Ent,NodeId), Perc), updateAt(at(Ent,NodeId), Perc, T)),
+	forall(member(has(Owner,Item), Perc), updateHas(has(Owner,Item), T)),
 	cleanMissingAt(Perc),
 	cleanMissingHas(Perc),
 
@@ -56,7 +57,8 @@ cleanMissingAtAux(NodeId, Perc):-
 	at([_,EntId],NodeId),
 	not(member(at([_,EntId],NodeId), Perc)),
 	retract(at([_,EntId],_)),
-	retract(atPos([_,EntId],_)).
+	retract(atPos([_,EntId],_)),
+	retract(lastSeen(EntId,_)).
 
 cleanMissingAtAux(_,_).
 
@@ -69,48 +71,59 @@ cleanMissingHasAux(NodeId, Perc):-
 
 cleanMissingHasAux(_,_).
 
-checkHasExistence(has([_,OwnerId],Item), Perc):-
-	not(member(has([_,OwnerId],Item), Perc)),
-	retract(has([_,OwnerId],Item)).
+checkHasExistence(has([_,OwnerId],[_,ItemId]), Perc):-
+	not(member(has([_,OwnerId],[_,ItemId]), Perc)),
+	retract(has([_,OwnerId],[_,ItemId])),
+	retract(lastSeen(ItemId,_)).
 
 checkHasExistence(_,_).
 
 % Si el objeto se encontraba en posesion de una entidad y ahora esta en el mapa, entonces se actualiza esa informacion en la KB
-updateAt(at([Type,Id],NodeId), Perc):-
+updateAt(at([Type,Id],NodeId), Perc, Time):-
 	has(_,[_,Id]),
 	retract(has(_,[_,Id])),
+	retract(lastSeen(Id,_)),
 	assert(at([Type,Id],NodeId)),
 	member(atPos([_,Id],Vec), Perc),
-	assert(atPos([Type,Id],Vec)).
+	assert(atPos([Type,Id],Vec)),
+	assert(lastSeen(Id,Time)).
 
 % Si el objeto se encontraba en una parte del mapa y ahora esta en otra, entonces se actualiza esa informacion en la KB
-updateAt(at([Type,Id],NodeId), Perc):-
+updateAt(at([Type,Id],NodeId), Perc, Time):-
 	at([_,Id],_),
 	retract(at([_,Id],_)),
 	retract(atPos([_,Id],_)),
+	retract(lastSeen(Id,_)),
 	assert(at([Type,Id],NodeId)),
 	member(atPos([_,Id],Vec), Perc),
-	assert(atPos([Type,Id],Vec)).
+	assert(atPos([Type,Id],Vec)),
+	assert(lastSeen(Id,Time)).
 
 % Si es un item desconocido, entonces se lo agrega a la KB
-updateAt(at([Type,Id],NodeId), Perc):-
+updateAt(at([Type,Id],NodeId), Perc, Time):-
 	assert(at([Type,Id],NodeId)),
 	member(atPos([_,Id],Vec), Perc),
-	assert(atPos([Type,Id],Vec)).
+	assert(atPos([Type,Id],Vec)),
+	assert(lastSeen(Id,Time)).
 
 % Si el objeto se encontraba en el mapa y ahora esta en posesion de una entidad, entonces se actualiza esa informacion en la KB
-updateHas(has([OwnerType,OwnerId],[ItemType,ItemId])):-
+updateHas(has([OwnerType,OwnerId],[ItemType,ItemId]), Time):-
 	at([_,ItemId],_),
 	retract(at([_,ItemId],_)),
 	retract(atPos([_,ItemId],_)),
-	assert(has([OwnerType,OwnerId],[ItemType,ItemId])).
+	retract(lastSeen(ItemId,_)),
+	assert(has([OwnerType,OwnerId],[ItemType,ItemId])),
+	assert(lastSeen(ItemId,Time)).
 
 % Si el objeto se encontraba en posesion de una entidad y ahora esta en posesion de otra, entonces se actualiza esa informacion en la KB
-updateHas(has([OwnerType,OwnerId],[ItemType,ItemId])):-
+updateHas(has([OwnerType,OwnerId],[ItemType,ItemId]), Time):-
 	has(_,[_,ItemId]),
 	retract(has(_,[_,ItemId])),
-	assert(has([OwnerType,OwnerId],[ItemType,ItemId])).
+	retract(lastSeen(ItemId,_)),
+	assert(has([OwnerType,OwnerId],[ItemType,ItemId])),
+	assert(lastSeen(ItemId,Time)).
 
 % Si es un item desconocido, entonces se lo agrega a la KB
-updateHas(has([OwnerType,OwnerId],[ItemType,ItemId])):-
-	assert(has([OwnerType,OwnerId],[ItemType,ItemId])).
+updateHas(has([OwnerType,OwnerId],[ItemType,ItemId]), Time):-
+	assert(has([OwnerType,OwnerId],[ItemType,ItemId])),
+	assert(lastSeen(ItemId,Time)).
