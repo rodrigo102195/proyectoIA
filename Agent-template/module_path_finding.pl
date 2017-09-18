@@ -31,7 +31,7 @@ a_estrella(Caminos,Metas,Plan,Destino):-
 	elegir_mejor_camino(Caminos,Metas,MejorCamino),
 	delete(Caminos,MejorCamino,CaminosSinElMejor),
 	generar_nuevos_caminos(MejorCamino,NuevosCaminos),
-	write('El costo del mejor camino es mejor camino es: '),MejorCamino=[H|T],write(H),nl,
+	write('El costo del mejor camino es mejor camino es: '),MejorCamino=[H|_T],write(H),nl,
 	limpiar_caminos(Caminos, NuevosCaminos,NuevosCaminosSinRepetidos), %Para que los nuevos caminos que pasen por un mismo nodo que los caminos viejos y sean mas costosos no aparezcan
 	write('los nuevos caminos sin repetir son: '),write(NuevosCaminosSinRepetidos),nl,
 	%remove...%Eliminar de los caminos viejos todos los caminos que contengan algun nodo de los nuevos nodos agregados en los caminos nuevos

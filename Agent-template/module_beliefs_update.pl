@@ -18,20 +18,20 @@
 %
 % update_beliefs(+Perc)
 %
-% IMPORTANTE: Debe exportarse todo predicado dinamico (creencia)
-% manipulado por la actualizacion de creencias, para que puedan ser
-% consultadon por el resto del codigo del agente.
+% IMPORTANTE: Debe exportarse todo predicado dinámico (creencia)
+% manipulado por la actualización de creencias, para que puedan ser
+% consultadon por el resto del código del agente.
 %
 
 % KB = Knowledge Base (Base de conocimiento)
 
 update_beliefs(Perc):-
 
-	% Se elimina de la KB la informacion que no es necesaria recordar
+	% Se elimina de la KB la información que no es necesaria recordar
 	retractall(time(_)),
 	retractall(entity_descr([agent,me],_)),
 
-	% Se agrega a la KB la informacion nueva, actualizando la antigua si es necesario
+	% Se agrega a la KB la información nueva, actualizando la antigua si es necesario
 	member(time(T), Perc), assert(time(T)),
 	forall(member(entity_descr(Id,Desc), Perc), updateDesc(entity_descr(Id,Desc))),
 	forall(member(at(Ent,NodeId), Perc), updateAt(at(Ent,NodeId), Perc, T)),
@@ -39,10 +39,10 @@ update_beliefs(Perc):-
 	cleanMissingAt(Perc),
 	cleanMissingHas(Perc),
 
-	% Se agregan los nodos en el rango de vision que no estan en la KB
+	% Se agregan los nodos en el rango de visión que no estan en la KB
 	forall(member(node(Id,Vec,Ady), Perc), addNode(node(Id,Vec,Ady))).
 
-% Si el nodo no esta en la KB, entonces lo agrega a la misma
+% Si el nodo no está en la KB, entonces lo agrega a la misma
 addNode(Fact):- not(Fact), assert(Fact).
 addNode(_).
 
@@ -50,7 +50,7 @@ addNode(_).
 updateDesc(entity_descr(Id,Desc)):- entity_descr(Id,_), retract(entity_descr(Id,_)), assert(entity_descr(Id,Desc)).
 updateDesc(entity_descr(Id,Desc)):- assert(entity_descr(Id,Desc)).
 
-% Se eliminan de la KB los objetos que se perdio se vista
+% Se eliminan de la KB los objetos que se perdió se vista
 cleanMissingAt(Perc):- forall(member(node(Id,_,_), Perc), cleanMissingAtAux(Id, Perc)).
 
 cleanMissingAtAux(NodeId, Perc):-
@@ -78,7 +78,7 @@ checkHasExistence(has([_,OwnerId],[_,ItemId]), Perc):-
 
 checkHasExistence(_,_).
 
-% Si el objeto se encontraba en posesion de una entidad y ahora esta en el mapa, entonces se actualiza esa informacion en la KB
+% Si el objeto se encontraba en posesión de una entidad y ahora esta en el mapa, entonces se actualiza esa información en la KB
 updateAt(at([Type,Id],NodeId), Perc, Time):-
 	has(_,[_,Id]),
 	retract(has(_,[_,Id])),
@@ -88,7 +88,7 @@ updateAt(at([Type,Id],NodeId), Perc, Time):-
 	assert(atPos([Type,Id],Vec)),
 	assert(lastSeen(Id,Time)).
 
-% Si el objeto se encontraba en una parte del mapa y ahora esta en otra, entonces se actualiza esa informacion en la KB
+% Si el objeto se encontraba en una parte del mapa y ahora esta en otra, entonces se actualiza esa información en la KB
 updateAt(at([Type,Id],NodeId), Perc, Time):-
 	at([_,Id],_),
 	retract(at([_,Id],_)),
@@ -106,7 +106,7 @@ updateAt(at([Type,Id],NodeId), Perc, Time):-
 	assert(atPos([Type,Id],Vec)),
 	assert(lastSeen(Id,Time)).
 
-% Si el objeto se encontraba en el mapa y ahora esta en posesion de una entidad, entonces se actualiza esa informacion en la KB
+% Si el objeto se encontraba en el mapa y ahora esta en posesión de una entidad, entonces se actualiza esa información en la KB
 updateHas(has([OwnerType,OwnerId],[ItemType,ItemId]), Time):-
 	at([_,ItemId],_),
 	retract(at([_,ItemId],_)),
@@ -115,7 +115,7 @@ updateHas(has([OwnerType,OwnerId],[ItemType,ItemId]), Time):-
 	assert(has([OwnerType,OwnerId],[ItemType,ItemId])),
 	assert(lastSeen(ItemId,Time)).
 
-% Si el objeto se encontraba en posesion de una entidad y ahora esta en posesion de otra, entonces se actualiza esa informacion en la KB
+% Si el objeto se encontraba en posesión de una entidad y ahora esta en posesión de otra, entonces se actualiza esa información en la KB
 updateHas(has([OwnerType,OwnerId],[ItemType,ItemId]), Time):-
 	has(_,[_,ItemId]),
 	retract(has(_,[_,ItemId])),

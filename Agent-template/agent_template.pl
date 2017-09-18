@@ -12,7 +12,7 @@
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%                          %%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%           AGENT	       %%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%           AGENT	         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%                          %%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%       EXECUTION CYCLE	   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%                          %%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -61,43 +61,41 @@ decide_action(Action):-
 	Action = attack([agent, Target]).
 
 decide_action(Action):-
-  write('siiiii'),plan(H),
-  nl,write('el plan es111: '),write(H),write('jijijiji'),nl,nl,
-    plan([SiguienteNodo|[]]),
-    write('El plan existe 1'),nl,
-    retractall(plan(_)),write('k'),nl,
-    retractall(intention(_)),write('kk'),nl,
-    Action = move(SiguienteNodo),write('La accion a realizar es: '),write(Action).
-
-decide_action(Action):-
- write('claaaaroo'),plan(H),
-  nl,write('el plan es222: '),write(H),write('jijijiji'),nl,nl,
-  plan([SiguienteNodo|Resto]),
-  write('El plan existe 2'),nl,
-  retractall(plan(_)),write('k'),nl,
-  assert(plan(Resto)),write('k'),nl,
-  Action = move(SiguienteNodo),write('La accion a realizar es: '),write(Action).
-
-decide_action(Action):-
-  write('a'),nl,
-
-  findall(IdNodo,at([gold,_IdEnt],IdNodo),Metas),
-  write('b'),nl,writeln(Metas),nl,
-  buscar_plan_desplazamiento(Metas,Plan,Destino),
+  write('Primer caso de A*'), nl,
+  plan(H),
+  write('El plan es: '), write(H), nl,
+  plan([SiguienteNodo|[]]),
   retractall(plan(_)),
   retractall(intention(_)),
+  Action = move(SiguienteNodo),
+  write('La accion a realizar es: '), write(Action), nl.
+
+decide_action(Action):-
+  write('Segundo caso de A*'), nl,
+  plan(H),
+  write('El plan es: '), write(H), nl,
+  plan([SiguienteNodo|Resto]),
+  retractall(plan(_)),
+  assert(plan(Resto)),
+  Action = move(SiguienteNodo),
+  write('La accion a realizar es: '), write(Action), nl.
+
+decide_action(Action):-
+  write('Tercer caso de A*'), nl,
+  findall(IdNodo,at([gold,_IdEnt],IdNodo),Metas),
+  write('Metas: '), writeln(Metas), nl,
+  buscar_plan_desplazamiento(Metas,Plan,Destino),
   assert(plan(Plan)),
-  write('d'),nl,
+  write('El nuevo plan es: '), write(Plan), nl,
   assert(intention(Destino)),
-  write('e'),nl,plan(H),
-  write('el plan a realizar es: '),write(plan(H)),nl,
-  decide_action(Action), write('f'),nl.
+  decide_action(Action),
+  write('La accion a realizar es: '), write(Action), nl.
 
 decide_action(Action):-
 	at([agent, me], MyNode),
 	findall(Node, ady(MyNode, Node), PossibleDestNodes),
-	random_member(DestNode, PossibleDestNodes), % Selecciona aleatoriamente una posici�n destino.
-	Action = move(DestNode),write('La accion a realizar essss '), write(Action).
+	random_member(DestNode, PossibleDestNodes), % Selecciona aleatoriamente una posición destino.
+	Action = move(DestNode).
 
 
 
@@ -116,7 +114,7 @@ decide_action(Action):-
 %
 % start_ag
 %
-% Solicita la registraci�n al juego, y recuerda su nombre.
+% Solicita la registración al juego, y recuerda su nombre.
 
 
 start_ag:- AgName = template,
@@ -135,9 +133,9 @@ s:- start_ag.
 %
 % start_ag_instance(+InstanceID)
 %
-% Solicita la registraci�n al juego de una instancia, y recuerda su
-% nombre, que ser� el de la versi�n original seguido del InstanceID
-% entre par�ntesis.
+% Solicita la registración al juego de una instancia, y recuerda su
+% nombre, que será el de la versión original seguido del InstanceID
+% entre paréntesis.
 
 
 start_ag_instance(InstanceID):-
