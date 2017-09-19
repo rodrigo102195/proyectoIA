@@ -61,20 +61,18 @@ decide_action(Action):-
 	Action = attack([agent, Target]).
 
 decide_action(Action):-
-  plan(H),
-  write('Primer caso de A*'), nl,
-  write('El plan es: '), write(H), nl,
   plan([SiguienteNodo|[]]),
+  write('Primer caso de A*'), nl,
+  write('El plan es: '), write([SiguienteNodo|[]]), nl,
   retractall(plan(_)),
   retractall(intention(_)),
   Action = move(SiguienteNodo),
   write('La accion a realizar es: '), write(Action), nl.
 
 decide_action(Action):-
-  plan(H),
-  write('Segundo caso de A*'), nl,
-  write('El plan es: '), write(H), nl,
   plan([SiguienteNodo|Resto]),
+  write('Segundo caso de A*'), nl,
+  write('El plan es: '), write([SiguienteNodo|Resto]), nl,
   retractall(plan(_)),
   assert(plan(Resto)),
   Action = move(SiguienteNodo),

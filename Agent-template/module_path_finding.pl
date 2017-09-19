@@ -34,12 +34,19 @@ a_estrella(Caminos,Metas,Plan,Destino):-
 	write('El costo del mejor camino es mejor camino es: '),MejorCamino=[H|_T],write(H),nl,
 	limpiar_caminos(Caminos, NuevosCaminos,NuevosCaminosSinRepetidos), %Para que los nuevos caminos que pasen por un mismo nodo que los caminos viejos y sean mas costosos no aparezcan
 	write('los nuevos caminos sin repetir son: '),write(NuevosCaminosSinRepetidos),nl,
-	%remove...%Eliminar de los caminos viejos todos los caminos que contengan algun nodo de los nuevos nodos agregados en los caminos nuevos
-	append(CaminosSinElMejor,NuevosCaminosSinRepetidos,CaminosActualizados),
+	eliminar_caminos_viejos(CaminosSinElMejor,NuevosCaminosSinRepetidos,CaminosSinElMejorSinViejos),%Eliminar de los caminos viejos todos los caminos que contengan algun nodo de los nuevos nodos agregados en los caminos nuevos
+	append(CaminosSinElMejorSinViejos,NuevosCaminosSinRepetidos,CaminosActualizados),
 	a_estrella(CaminosActualizados,Metas,Plan,Destino).
 
-%Si nosotros ya agregamos un nuevo camino que como cabeza pertenece a un elemento de los caminos viejos entonces el camino viejo debería desaparecer
-%eliminar_caminos_viejos(CaminosViejos,CaminosNuevos,CaminosViejosSinRepetidos):-
+eliminar_caminos_viejos([],_CaminosNuevos,[]):-nl,!.
+%Si nosotros tenemos un camino viejo que tiene la misma cabeza que algun nuevo camino entonces el camino viejo debe dejar de existir
+eliminar_caminos_viejos([[CostoCaminoViejo,HeaderCaminoViejo|RestoCaminoViejo]|RestoCaminosViejos],CaminosNuevos,Z):-
+	member([CostoCaminoNuevo,HeaderCaminoNuevo|RestoCaminoNuevo],CaminosNuevos),HeaderCaminoNuevo=HeaderCaminoViejo,
+	eliminar_caminos_viejos(RestoCaminosViejos,CaminosNuevos,Z).
+
+%En este caso el header del camino viejo no se corresponde con ningun header de los caminos nuevos, por lo que no debemos ignorarlo
+eliminar_caminos_viejos([HeaderCaminosViejos|RestoCaminosViejos],CaminosNuevos,[HeaderCaminosViejos|Z]):-
+	eliminar_caminos_viejos(RestoCaminosViejos,CaminosNuevos,Z).
 
 %Terminamos de recorrer los caminos nuevos
 limpiar_caminos(_Caminos,[],[]):-!. %Termine de limpiar los caminos
