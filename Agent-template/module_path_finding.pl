@@ -20,6 +20,7 @@ buscar_plan_desplazamiento(Metas, Plan, Destino):-
 
 a_estrella_cascara(Caminos,Metas,Plan,Destino,Visitados):-
 	%write('Ultimo camino en cascara: '), write(UltimoMejorCamino), nl,
+	not(Caminos=[]),
 	elegir_mejor_camino(Caminos,Metas,[Costo,Header|RestoCamino]), %Se podría mejorar
 	%write('Mejor Camino en cascara: '), write(MejorCamino), nl,
 	%UltimoMejorCamino \= MejorCamino, %Debería agregar la lista de visitados y con eso chequeo ciclos y visitados.. con eso ya estaría
