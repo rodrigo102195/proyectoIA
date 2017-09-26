@@ -80,9 +80,9 @@ decide_action(Action):-
 
 decide_action(Action):-
   findall(IdNodo,at([gold,_IdEnt],IdNodo),Metas),
+  buscar_plan_desplazamiento(Metas,Plan,Destino),
   write('Tercer caso de A*'), nl,
   write('Metas: '), writeln(Metas), nl,
-  buscar_plan_desplazamiento(Metas,Plan,Destino),
   assert(plan(Plan)),
   write('El nuevo plan es: '), write(Plan), nl,
   assert(intention(Destino)),
