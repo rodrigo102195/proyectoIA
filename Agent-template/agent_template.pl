@@ -45,11 +45,18 @@ run:-
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 decide_action(Action):-
+  at([agent, me], MyNode),
+  at([inn, _IdEnt], MyNode),
+  property([agent, me], life, MyLife),
+  MyLife < 450,
+  Action = noop.
+
+decide_action(Action):-
 	at([agent, me], MyNode),
 	at([gold, GName], MyNode),
 	write('Encontró un tesoro: '), write(GName), write('!!!'),nl,
-        write('voy a intentar tomarlo...'),nl,
-        Action = pickup([gold, GName]).
+  write('voy a intentar tomarlo...'),nl,
+  Action = pickup([gold, GName]).
 
 decide_action(Action):-
 	atPos([agent, me], MyPos),
@@ -79,9 +86,22 @@ decide_action(Action):-
   write('La accion a realizar es: '), write(Action), nl.
 
 decide_action(Action):-
-  findall(IdNodo,at([gold,_IdEnt],IdNodo),Metas),
-  buscar_plan_desplazamiento(Metas,Plan,Destino),
-  write('Tercer caso de A*'), nl,
+  property([agent, me], life, MyLife),
+  MyLife =< 80,
+  findall(IdNodo, at([inn,_IdEnt],IdNodo), Metas),
+  buscar_plan_desplazamiento(Metas, Plan, Destino),
+  write('Tercer caso de A* (ir a una posada)'), nl,
+  write('Metas: '), writeln(Metas), nl,
+  assert(plan(Plan)),
+  write('El nuevo plan es: '), write(Plan), nl,
+  assert(intention(Destino)),
+  decide_action(Action),
+  write('La accion a realizar es: '), write(Action), nl.
+
+decide_action(Action):-
+  findall(IdNodo, at([gold,_IdEnt],IdNodo), Metas),
+  buscar_plan_desplazamiento(Metas, Plan, Destino),
+  write('Tercer caso de A* (ir a un tesoro)'), nl,
   write('Metas: '), writeln(Metas), nl,
   assert(plan(Plan)),
   write('El nuevo plan es: '), write(Plan), nl,
