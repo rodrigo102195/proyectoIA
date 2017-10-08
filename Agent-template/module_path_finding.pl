@@ -12,13 +12,14 @@
 % Destino: Es el id del nodo destino al cual nos dirigimos
 buscar_plan_desplazamiento(Metas, Plan, Destino):-
 	at([agent,me], MyPos),
-	not(Metas = []),
+	Metas \= [],
 	write('Mi posicion es: '), write(MyPos), nl,
 	write('Las metas son: '), write(Metas), nl,
-	a_estrella_cascara([[0,MyPos]], Metas, PlanReverso, Destino, []),write('holaaa'),nl,!,
+	a_estrella_cascara([[0,MyPos]], Metas, PlanReverso, Destino, []), !,
 	reverse(PlanReverso, [_MiPosicion|Plan]).
 
-a_estrella_cascara([],_Metas,[],_Destino,_Visitados):-!.
+a_estrella_cascara([],_Metas,[],_Destino,_Visitados):- !.
+
 a_estrella_cascara(Caminos, Metas, Plan, Destino, Visitados):-
 	elegir_mejor_camino(Caminos, Metas, [Costo,Header|RestoCamino]),
 	a_estrella(Caminos, Metas, Plan, Destino, [Costo,Header|RestoCamino], [Header|Visitados]).
@@ -39,7 +40,7 @@ a_estrella(Caminos, Metas, Plan, Destino, MejorCamino, Visitados):-
 	generar_nuevos_caminos(Visitados, MejorCamino, NuevosCaminos),
 	%mostrarGenerar(NuevosCaminos),
 	eliminar_peores_caminos(NuevosCaminos, CaminosSinElMejor, CaminosActualizados),
-	mostrarActualizados(CaminosActualizados),
+	%mostrarActualizados(CaminosActualizados),
 	a_estrella_cascara(CaminosActualizados, Metas, Plan, Destino, Visitados).
 
 mostrarEliminar(Caminos):-length(Caminos,X),X=0, write('Se eliminaron todos los caminos'),nl.
@@ -48,6 +49,7 @@ mostrarGenerar(Caminos):-length(Caminos,X),X=0,write('No se generaron nuevos cam
 mostrarGenerar(_Caminos).
 mostrarActualizados(Caminos):-length(Caminos,X),X=0,write('No se actualizaron nuevos caminos'),nl.
 mostrarActualizados(_Caminos).
+
 % eliminar_peores_caminos(+NuevosCaminos, +CaminosSinElMejor, -CaminosActualizados)
 % Toma dos listas de caminos, una con los nuevos caminos generados a partir del ultimo mejor y otra con todos los demas caminos de la frontera
 % Elimina de la lista de los caminos de la frontera los que tengan mismo header que un nuevo camino pero con peor costo

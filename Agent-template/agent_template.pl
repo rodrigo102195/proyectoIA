@@ -46,7 +46,10 @@ run:-
 
 decide_action(Action):-
   at([agent, me], MyNode),
-  at([inn, _IdEnt], MyNode),
+  at([inn, IdEnt], MyNode),
+  entity_descr([inn, IdEnt], [[forbidden_entry, List]]), % [[forbidden_entry,[[[agent,id],time]]]]
+  ag_name(MyName),
+  not(member([[agent,MyName],_], List)),
   property([agent, me], life, MyLife),
   MyLife < 450,
   Action = noop.
@@ -54,24 +57,25 @@ decide_action(Action):-
 decide_action(Action):-
 	at([agent, me], MyNode),
 	at([gold, GName], MyNode),
-	write('Encontró un tesoro: '), write(GName), write('!!!'),nl,
-  write('voy a intentar tomarlo...'),nl,
+	write('Encontré un tesoro: '), write(GName), write('!!!'), nl,
+  write('Voy a intentar tomarlo...'), nl,
   Action = pickup([gold, GName]).
 
-%decide_action(Action):-
-	%atPos([agent, me], MyPos),
-	%atPos([agent, Target], TPos),
-	%Target \= me,
-	%property([agent, Target], life, TLife),
-	%TLife > 0,
-	%pos_in_attack_range(MyPos, TPos),
-	%Action = attack([agent, Target]).
 decide_action(Action):-
-  plan([SiguienteNodo|Resto]),
+	atPos([agent, me], MyPos),
+	atPos([agent, Target], TPos),
+	Target \= me,
+	property([agent, Target], life, TLife),
+	TLife > 0,
+	pos_in_attack_range(MyPos, TPos),
+	Action = attack([agent, Target]).
+
+decide_action(Action):-
+  plan([SiguienteNodo|_Resto]),
   at([agent,me],MyPos),
   node(MyPos,_Vec,Ady),
   not(member([SiguienteNodo,_Costo],Ady)),
-  write('ENCONTRE UN ACTION FAILED!!'),nl,
+  %write('ENCONTRE UN ACTION FAILED!!'), nl,
   retractall(plan(_)),
   retractall(intention(_)),
   decide_action(Action).
@@ -99,7 +103,7 @@ decide_action(Action):-
 decide_action(Action):-
   property([agent, me], life, MyLife),
   MyLife =< 80,
-  findall(IdNodo, at([inn,_IdEnt],IdNodo), Metas),
+  findall(IdNodo, (at([inn,IdEnt],IdNodo), entity_descr([inn,IdEnt],[[forbidden_entry,List]]), ag_name(MyName), not(member([[agent,MyName],_], List))), Metas),
   buscar_plan_desplazamiento(Metas, Plan, Destino),
   write('Tercer caso de A* (ir a una posada)'), nl,
   write('Metas: '), writeln(Metas), nl,
@@ -119,7 +123,7 @@ decide_action(Action):-
   decide_action(Action).
 
 decide_action(Action):-
-  retractall(at([gold,_IdEnt],_Metas)),%Me olvido del oro que no pude llegar
+  retractall(at([gold,_IdEnt],_Metas)),%Me olvido del oro que no pude llegar (No se deberia modificar el conocimiento desde aca!)
   write('Movimiento aleatorio'), nl,
 	at([agent, me], MyNode),
 	findall(Node, ady(MyNode, Node), PossibleDestNodes),
@@ -146,14 +150,15 @@ decide_action(Action):-
 % Solicita la registración al juego, y recuerda su nombre.
 
 
-start_ag:-set_prolog_stack(global, limit(536870912)),
-          AgName = template,
-           agent_init(AgName),
-           assert(ag_name(AgName)),
-	   	   agent_reset,
-           connect,
-           run,
-           disconnect.
+start_ag:-
+  set_prolog_stack(global, limit(536870912)),
+  AgName = template,
+  agent_init(AgName),
+  assert(ag_name(AgName)),
+  agent_reset,
+  connect,
+  run,
+  disconnect.
 
 s:- start_ag.
 
@@ -168,14 +173,15 @@ s:- start_ag.
 % entre paréntesis.
 
 
-start_ag_instance(InstanceID):-set_prolog_stack(global, limit(536870912)),
-                    AgClassName = template,
-                    AgInstanceName =.. [AgClassName, InstanceID],
-		    agent_init(AgInstanceName),
-		    assert(ag_name(AgInstanceName)),
-		    agent_reset,
-		    connect,
-		    run,
-		    disconnect.
+start_ag_instance(InstanceID):-
+  set_prolog_stack(global, limit(536870912)),
+  AgClassName = template,
+  AgInstanceName =.. [AgClassName, InstanceID],
+  agent_init(AgInstanceName),
+  assert(ag_name(AgInstanceName)),
+  agent_reset,
+  connect,
+  run,
+  disconnect.
 
 si(InstanceID):- start_ag_instance(InstanceID).
