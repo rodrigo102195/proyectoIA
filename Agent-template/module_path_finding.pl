@@ -15,19 +15,20 @@ buscar_plan_desplazamiento(Metas, Plan, Destino):-
 	Metas \= [],
 	write('Mi posicion es: '), write(MyPos), nl,
 	write('Las metas son: '), write(Metas), nl,
-	a_estrella_cascara([[0,MyPos]], Metas, PlanReverso, Destino, []), !,
+	a_estrella_cascara([path(0,[MyPos])], Metas, PlanReverso, Destino, []), !,
 	reverse(PlanReverso, [_MiPosicion|Plan]).
+
+% Estructura: [path(Costo,[Header|RestoCamino])|Caminos]
 
 a_estrella_cascara([],_Metas,[],_Destino,_Visitados):- !.
 
 a_estrella_cascara(Caminos, Metas, Plan, Destino, Visitados):-
-	elegir_mejor_camino(Caminos, Metas, [Costo,Header|RestoCamino]),
-	a_estrella(Caminos, Metas, Plan, Destino, [Costo,Header|RestoCamino], [Header|Visitados]).
+	elegir_mejor_camino(Caminos, Metas, path(Costo,[Header|RestoCamino])),
+	a_estrella(Caminos, Metas, Plan, Destino, path(Costo,[Header|RestoCamino]), [Header|Visitados]).
 
-%a_estrella([],_Metas,[],_Header,_MejorCamino,_Visitados):-!.
 % a_estrella(+Caminos, +Metas, -Plan, -Destino, +MejorCamino)
 % Caso base: Si el nodo que visito contiene a la meta entonces devuelvo el plan
-a_estrella(_Caminos, Metas, [Header|RestoCamino], Header, [_Costo,Header|RestoCamino], _Visitados):-
+a_estrella(_Caminos, Metas, [Header|RestoCamino], Header, path(_Costo,[Header|RestoCamino]), _Visitados):-
 	member(Header, Metas).
 
 % Caso Recursivo:
@@ -36,19 +37,9 @@ a_estrella(_Caminos, Metas, [Header|RestoCamino], Header, [_Costo,Header|RestoCa
 % Llamo al a_estrella con los caminos sin el mejor camino mas los nuevos caminos
 a_estrella(Caminos, Metas, Plan, Destino, MejorCamino, Visitados):-
 	delete(Caminos, MejorCamino, CaminosSinElMejor),
-	%mostrarEliminar(CaminosSinElMejor),
 	generar_nuevos_caminos(Visitados, MejorCamino, NuevosCaminos),
-	%mostrarGenerar(NuevosCaminos),
 	eliminar_peores_caminos(NuevosCaminos, CaminosSinElMejor, CaminosActualizados),
-	%mostrarActualizados(CaminosActualizados),
 	a_estrella_cascara(CaminosActualizados, Metas, Plan, Destino, Visitados).
-
-mostrarEliminar(Caminos):-length(Caminos,X),X=0, write('Se eliminaron todos los caminos'),nl.
-mostrarEliminar(_Caminos).
-mostrarGenerar(Caminos):-length(Caminos,X),X=0,write('No se generaron nuevos caminos'),nl.
-mostrarGenerar(_Caminos).
-mostrarActualizados(Caminos):-length(Caminos,X),X=0,write('No se actualizaron nuevos caminos'),nl.
-mostrarActualizados(_Caminos).
 
 % eliminar_peores_caminos(+NuevosCaminos, +CaminosSinElMejor, -CaminosActualizados)
 % Toma dos listas de caminos, una con los nuevos caminos generados a partir del ultimo mejor y otra con todos los demas caminos de la frontera
@@ -57,14 +48,14 @@ mostrarActualizados(_Caminos).
 % Si el nuevo camino no comparte header con ningun camino de la frontera, entonces se lo agrega directamente
 eliminar_peores_caminos([], CaminosViejos, CaminosViejos).
 
-eliminar_peores_caminos([[CostoNuevo,Header|RestoNuevo]|RestoCaminosNuevos], CaminosViejos, [[CostoNuevo,Header|RestoNuevo]|RestoCaminosFiltrados]):-
-	member([CostoViejo,Header|RestoViejo], CaminosViejos),
+eliminar_peores_caminos([path(CostoNuevo,[Header|RestoNuevo])|RestoCaminosNuevos], CaminosViejos, [path(CostoNuevo,[Header|RestoNuevo])|RestoCaminosFiltrados]):-
+	member(path(CostoViejo,[Header|RestoViejo]), CaminosViejos),
 	CostoNuevo < CostoViejo,
-	delete([CostoViejo,Header|RestoViejo], CaminosViejos, CaminosViejosSinPeor),
+	delete(path(CostoViejo,[Header|RestoViejo]), CaminosViejos, CaminosViejosSinPeor),
 	eliminar_peores_caminos(RestoCaminosNuevos, CaminosViejosSinPeor, RestoCaminosFiltrados).
 
-eliminar_peores_caminos([[_CostoNuevo,Header|_RestoNuevo]|RestoCaminosNuevos], CaminosViejos, CaminosFiltrados):-
-	member([_CostoViejo,Header|_RestoViejo], CaminosViejos),
+eliminar_peores_caminos([path(_CostoNuevo,[Header|_RestoNuevo])|RestoCaminosNuevos], CaminosViejos, CaminosFiltrados):-
+	member(path(_CostoViejo,[Header|_RestoViejo]), CaminosViejos),
 	eliminar_peores_caminos(RestoCaminosNuevos, CaminosViejos, CaminosFiltrados).
 
 eliminar_peores_caminos([CaminoNuevo|RestoCaminosNuevos], CaminosViejos, [CaminoNuevo|RestoCaminosFiltrados]):-
@@ -73,17 +64,17 @@ eliminar_peores_caminos([CaminoNuevo|RestoCaminosNuevos], CaminosViejos, [Camino
 % cambiar_costos(+Caminos, -CaminosActualizados)
 % Actualiza los costos de cada camino nuevo, sumandole al costo actual, el costo del nuevo header del camino
 cambiar_costos([], [], _).
-cambiar_costos([[CostoActual,Header1|RestoActual]|RestoActual1], [[NuevoCosto,Header1|RestoActual]|RestoActual2], Ady):-
+cambiar_costos([path(CostoActual,[Header1|RestoActual])|RestoActual1], [path(NuevoCosto,[Header1|RestoActual])|RestoActual2], Ady):-
 	member([Header1,CostoAdy], Ady),
 	NuevoCosto is CostoActual + CostoAdy,
 	cambiar_costos(RestoActual1, RestoActual2, Ady).
 
 % generar_nuevos_caminos(+Camino, -NuevosCaminos)
 % Genera todos los nuevos caminos posibles a partir de los adyacentes del último elemento del camino
-generar_nuevos_caminos(Visitados, [CostoActual,HeaderActual|RestoActual], NuevosCaminos):-
+generar_nuevos_caminos(Visitados, path(CostoActual,[HeaderActual|RestoActual]), NuevosCaminos):-
 	node(HeaderActual, _Vec, Ady),
-	findall([CostoActual,NuevoHeader,HeaderActual|RestoActual],
-	(member([NuevoHeader,_CostoAdy], Ady), % Fijarse si se podría haber agregado el nuevo costo acá
+	findall(path(CostoActual,[NuevoHeader,HeaderActual|RestoActual]),
+	(member([NuevoHeader,_CostoAdy], Ady),
 	not(member(NuevoHeader, Visitados))), % Control de visitados
 	ListaNueva),
 	cambiar_costos(ListaNueva, NuevosCaminos, Ady).
@@ -95,16 +86,16 @@ generar_nuevos_caminos(_Visitados, _MejorCamino, []).
 % El mejor camino será aquel que esté mas cercano a una de las metas
 elegir_mejor_camino([UnicoCamino], _Metas, UnicoCamino).
 
-elegir_mejor_camino([[Costo1,Header1|Resto1],[Costo2,Header2|_Resto2]|RestoListas], Metas, MejorCamino):-
+elegir_mejor_camino([path(Costo1,[Header1|Resto1]),path(Costo2,[Header2|_Resto2])|RestoListas], Metas, MejorCamino):-
 	node(Header1, Pos1, _Ady1),
 	node(Header2, Pos2, _Ady2),
 	menorDistancia(Pos1, Metas, MenorDist1),
 	menorDistancia(Pos2, Metas, MenorDist2),
 	MenorDist1 + Costo1 =< MenorDist2 + Costo2,
-	elegir_mejor_camino([[Costo1,Header1|Resto1]|RestoListas], Metas, MejorCamino).
+	elegir_mejor_camino([path(Costo1,[Header1|Resto1])|RestoListas], Metas, MejorCamino).
 
-elegir_mejor_camino([[_Costo1,_Header1|_Resto1],[Costo2,Header2|Resto2]|RestoListas], Metas, MejorCamino):-
-	elegir_mejor_camino([[Costo2,Header2|Resto2]|RestoListas], Metas, MejorCamino).
+elegir_mejor_camino([path(_Costo1,[_Header1|_Resto1]),path(Costo2,[Header2|Resto2])|RestoListas], Metas, MejorCamino):-
+	elegir_mejor_camino([path(Costo2,[Header2|Resto2])|RestoListas], Metas, MejorCamino).
 
 % menorDistancia(+VectorMiNodo, +Metas, -MenorDistancia)
 % Elije la menor distancia entre nuestro nodo y la lista de metas
