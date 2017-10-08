@@ -58,18 +58,28 @@ decide_action(Action):-
   write('voy a intentar tomarlo...'),nl,
   Action = pickup([gold, GName]).
 
+%decide_action(Action):-
+	%atPos([agent, me], MyPos),
+	%atPos([agent, Target], TPos),
+	%Target \= me,
+	%property([agent, Target], life, TLife),
+	%TLife > 0,
+	%pos_in_attack_range(MyPos, TPos),
+	%Action = attack([agent, Target]).
 decide_action(Action):-
-	atPos([agent, me], MyPos),
-	atPos([agent, Target], TPos),
-	Target \= me,
-	property([agent, Target], life, TLife),
-	TLife > 0,
-	pos_in_attack_range(MyPos, TPos),
-	Action = attack([agent, Target]).
+  plan([SiguienteNodo|Resto]),
+  at([agent,me],MyPos),
+  node(MyPos,_Vec,Ady),
+  not(member([SiguienteNodo,_Costo],Ady)),
+  write('ENCONTRE UN ACTION FAILED!!'),nl,
+  retractall(plan(_)),
+  retractall(intention(_)),
+  decide_action(Action).
 
 decide_action(Action):-
   plan([SiguienteNodo|[]]),
   write('Primer caso de A*'), nl,
+  write('Mis adyacentes son: '), at([agent,me], MyPos), node(MyPos,_Vec,Ady),write(Ady),nl,
   write('El plan es: '), write([SiguienteNodo|[]]), nl,
   retractall(plan(_)),
   retractall(intention(_)),
@@ -79,6 +89,7 @@ decide_action(Action):-
 decide_action(Action):-
   plan([SiguienteNodo|Resto]),
   write('Segundo caso de A*'), nl,
+  write('Mis adyacentes son: '), at([agent,me], MyPos), node(MyPos,_Vec,Ady),write(Ady),nl,
   write('El plan es: '), write([SiguienteNodo|Resto]), nl,
   retractall(plan(_)),
   assert(plan(Resto)),
@@ -95,8 +106,7 @@ decide_action(Action):-
   assert(plan(Plan)),
   write('El nuevo plan es: '), write(Plan), nl,
   assert(intention(Destino)),
-  decide_action(Action),
-  write('La accion a realizar es: '), write(Action), nl.
+  decide_action(Action).
 
 decide_action(Action):-
   findall(IdNodo, at([gold,_IdEnt],IdNodo), Metas),
@@ -106,10 +116,10 @@ decide_action(Action):-
   assert(plan(Plan)),
   write('El nuevo plan es: '), write(Plan), nl,
   assert(intention(Destino)),
-  decide_action(Action),
-  write('La accion a realizar es: '), write(Action), nl.
+  decide_action(Action).
 
 decide_action(Action):-
+  retractall(at([gold,_IdEnt],_Metas)),%Me olvido del oro que no pude llegar
   write('Movimiento aleatorio'), nl,
 	at([agent, me], MyNode),
 	findall(Node, ady(MyNode, Node), PossibleDestNodes),
@@ -136,7 +146,8 @@ decide_action(Action):-
 % Solicita la registración al juego, y recuerda su nombre.
 
 
-start_ag:- AgName = template,
+start_ag:-set_prolog_stack(global, limit(536870912)),
+          AgName = template,
            agent_init(AgName),
            assert(ag_name(AgName)),
 	   	   agent_reset,
@@ -157,7 +168,7 @@ s:- start_ag.
 % entre paréntesis.
 
 
-start_ag_instance(InstanceID):-
+start_ag_instance(InstanceID):-set_prolog_stack(global, limit(536870912)),
                     AgClassName = template,
                     AgInstanceName =.. [AgClassName, InstanceID],
 		    agent_init(AgInstanceName),

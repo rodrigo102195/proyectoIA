@@ -15,14 +15,15 @@ buscar_plan_desplazamiento(Metas, Plan, Destino):-
 	not(Metas = []),
 	write('Mi posicion es: '), write(MyPos), nl,
 	write('Las metas son: '), write(Metas), nl,
-	a_estrella_cascara([[0,MyPos]], Metas, PlanReverso, Destino, []),
+	a_estrella_cascara([[0,MyPos]], Metas, PlanReverso, Destino, []),write('holaaa'),nl,!,
 	reverse(PlanReverso, [_MiPosicion|Plan]).
 
+a_estrella_cascara([],_Metas,[],_Destino,_Visitados):-!.
 a_estrella_cascara(Caminos, Metas, Plan, Destino, Visitados):-
-	not(Caminos = []),
 	elegir_mejor_camino(Caminos, Metas, [Costo,Header|RestoCamino]),
 	a_estrella(Caminos, Metas, Plan, Destino, [Costo,Header|RestoCamino], [Header|Visitados]).
 
+%a_estrella([],_Metas,[],_Header,_MejorCamino,_Visitados):-!.
 % a_estrella(+Caminos, +Metas, -Plan, -Destino, +MejorCamino)
 % Caso base: Si el nodo que visito contiene a la meta entonces devuelvo el plan
 a_estrella(_Caminos, Metas, [Header|RestoCamino], Header, [_Costo,Header|RestoCamino], _Visitados):-
@@ -34,10 +35,19 @@ a_estrella(_Caminos, Metas, [Header|RestoCamino], Header, [_Costo,Header|RestoCa
 % Llamo al a_estrella con los caminos sin el mejor camino mas los nuevos caminos
 a_estrella(Caminos, Metas, Plan, Destino, MejorCamino, Visitados):-
 	delete(Caminos, MejorCamino, CaminosSinElMejor),
-	generar_nuevos_caminos(CaminosSinElMejor, Visitados, MejorCamino, NuevosCaminos),
+	%mostrarEliminar(CaminosSinElMejor),
+	generar_nuevos_caminos(Visitados, MejorCamino, NuevosCaminos),
+	%mostrarGenerar(NuevosCaminos),
 	eliminar_peores_caminos(NuevosCaminos, CaminosSinElMejor, CaminosActualizados),
+	mostrarActualizados(CaminosActualizados),
 	a_estrella_cascara(CaminosActualizados, Metas, Plan, Destino, Visitados).
 
+mostrarEliminar(Caminos):-length(Caminos,X),X=0, write('Se eliminaron todos los caminos'),nl.
+mostrarEliminar(_Caminos).
+mostrarGenerar(Caminos):-length(Caminos,X),X=0,write('No se generaron nuevos caminos'),nl.
+mostrarGenerar(_Caminos).
+mostrarActualizados(Caminos):-length(Caminos,X),X=0,write('No se actualizaron nuevos caminos'),nl.
+mostrarActualizados(_Caminos).
 % eliminar_peores_caminos(+NuevosCaminos, +CaminosSinElMejor, -CaminosActualizados)
 % Toma dos listas de caminos, una con los nuevos caminos generados a partir del ultimo mejor y otra con todos los demas caminos de la frontera
 % Elimina de la lista de los caminos de la frontera los que tengan mismo header que un nuevo camino pero con peor costo
@@ -68,7 +78,7 @@ cambiar_costos([[CostoActual,Header1|RestoActual]|RestoActual1], [[NuevoCosto,He
 
 % generar_nuevos_caminos(+Camino, -NuevosCaminos)
 % Genera todos los nuevos caminos posibles a partir de los adyacentes del último elemento del camino
-generar_nuevos_caminos(_Caminos, Visitados, [CostoActual,HeaderActual|RestoActual], NuevosCaminos):-
+generar_nuevos_caminos(Visitados, [CostoActual,HeaderActual|RestoActual], NuevosCaminos):-
 	node(HeaderActual, _Vec, Ady),
 	findall([CostoActual,NuevoHeader,HeaderActual|RestoActual],
 	(member([NuevoHeader,_CostoAdy], Ady), % Fijarse si se podría haber agregado el nuevo costo acá
@@ -76,7 +86,7 @@ generar_nuevos_caminos(_Caminos, Visitados, [CostoActual,HeaderActual|RestoActua
 	ListaNueva),
 	cambiar_costos(ListaNueva, NuevosCaminos, Ady).
 
-generar_nuevos_caminos(_Caminos, _Visitados, _MejorCamino, []).
+generar_nuevos_caminos(_Visitados, _MejorCamino, []).
 
 % elegir_mejor_camino(+Caminos, +Metas, -MejorCamino)
 % Devuelve el mejor de los caminos para un dado conjunto de Metas
