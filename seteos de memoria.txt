@@ -1,0 +1,3 @@
+statistics(global_stack, Value).
+set_prolog_stack(global, limit(536870912)).
+prolog_stack_property(global, KeyValue).
