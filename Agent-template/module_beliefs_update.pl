@@ -69,6 +69,7 @@ cleanUnreachableAt():- forall(unreachable(NodeId), cleanUnreachableAtAux(NodeId)
 cleanUnreachableAtAux(NodeId):-
 	at([_,EntId],NodeId),
 	retract(at([_,EntId],NodeId)),
+	retract(atPos([_,EntId],_)),
 	retract(lastSeen(EntId,_)),
 	forall(has([_,EntId],[_,ItemId]), retract(lastSeen(ItemId,_))),
 	retractall(has([_,EntId],_)),
