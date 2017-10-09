@@ -7,7 +7,7 @@
 
 :- consult(extras_meta_preds).
 
-:- dynamic intention/1, plan/1.
+:- dynamic intention/1, plan/1, goals/1, unreachable/1.
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -74,10 +74,10 @@ decide_action(Action):-
   plan([SiguienteNodo|_Resto]),
   at([agent,me],MyPos),
   node(MyPos,_Vec,Ady),
-  not(member([SiguienteNodo,_Costo],Ady)),
-  %write('ENCONTRE UN ACTION FAILED!!'), nl,
+  not(member([SiguienteNodo,_Costo],Ady)), % Action failed
   retractall(plan(_)),
   retractall(intention(_)),
+  retractall(goals(_)),
   decide_action(Action).
 
 decide_action(Action):-
@@ -87,6 +87,7 @@ decide_action(Action):-
   write('El plan es: '), write([SiguienteNodo|[]]), nl,
   retractall(plan(_)),
   retractall(intention(_)),
+  retractall(goals(_)),
   Action = move(SiguienteNodo),
   write('La accion a realizar es: '), write(Action), nl.
 
@@ -104,6 +105,7 @@ decide_action(Action):-
   property([agent, me], life, MyLife),
   MyLife =< 80,
   findall(IdNodo, (at([inn,IdEnt],IdNodo), entity_descr([inn,IdEnt],[[forbidden_entry,List]]), ag_name(MyName), not(member([[agent,MyName],_], List))), Metas),
+  assert(goals(Metas)),
   buscar_plan_desplazamiento(Metas, Plan, Destino),
   write('Tercer caso de A* (ir a una posada)'), nl,
   write('Metas: '), writeln(Metas), nl,
@@ -114,6 +116,7 @@ decide_action(Action):-
 
 decide_action(Action):-
   findall(IdNodo, at([gold,_IdEnt],IdNodo), Metas),
+  assert(goals(Metas)),
   buscar_plan_desplazamiento(Metas, Plan, Destino),
   write('Tercer caso de A* (ir a un tesoro)'), nl,
   write('Metas: '), writeln(Metas), nl,
@@ -123,7 +126,13 @@ decide_action(Action):-
   decide_action(Action).
 
 decide_action(Action):-
-  retractall(at([gold,_IdEnt],_Metas)),%Me olvido del oro que no pude llegar (No se deberia modificar el conocimiento desde aca!)
+  goals(Metas),
+  Metas \= [],
+  forall(member(Nodo, Metas), assert(unreachable(Nodo))),
+  retractall(goals(_)),
+  Action = noop.
+
+decide_action(Action):-
   write('Movimiento aleatorio'), nl,
 	at([agent, me], MyNode),
 	findall(Node, ady(MyNode, Node), PossibleDestNodes),
