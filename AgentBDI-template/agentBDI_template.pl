@@ -7,7 +7,7 @@
 
 :- consult(extras_meta_preds).
 
-:- dynamic intention/1, plan/1.
+:- dynamic intention/1, plan/1, goals/1, unreachable/1.
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -30,8 +30,8 @@ run:-
 
       display_ag, nl,!,
 
-      deliberate,  % FUE IMPLEMENTADO DE MANERA QUE SI POSTERIORMENTE FALLA LA OBTENCIÓN DE UN PLAN PARA LA INTENCIÓN
-		   % EN PRINCIPIO SELECCIONADA, VUELVE A RECONSIDERAR INTENCIÓN.
+      deliberate,  % FUE IMPLEMENTADO DE MANERA QUE SI POSTERIORMENTE FALLA LA OBTENCIï¿½N DE UN PLAN PARA LA INTENCIï¿½N
+		   % EN PRINCIPIO SELECCIONADA, VUELVE A RECONSIDERAR INTENCIï¿½N.
 
       planning_and_execution(Action),
 
@@ -56,7 +56,7 @@ run:-
 %
 % update_beliefs(+Perc)
 %
-% Se encuentra definido en el módulo 'module_beliefs_update'.
+% Se encuentra definido en el mï¿½dulo 'module_beliefs_update'.
 
 % << DESARROLLADO EN ETAPA 1 >>
 
@@ -75,52 +75,52 @@ run:-
 %
 % deliberate
 %
-% El agente analiza si continuará con su intención actual, considerando
+% El agente analiza si continuarï¿½ con su intenciï¿½n actual, considerando
 % deseos de alta prioridad, la factibilidad del plan
-% para la intencion actual, si la intención actual fue lograda, etc.
-% En caso de no continuar con la intención corriente, establece cual
-% será la nueva intención analizando los deseos existentes y
+% para la intencion actual, si la intenciï¿½n actual fue lograda, etc.
+% En caso de no continuar con la intenciï¿½n corriente, establece cual
+% serï¿½ la nueva intenciï¿½n analizando los deseos existentes y
 % seleccionando uno de ellos.
 
 deliberate:-
 
 	once(high_priority(HPDesire, Explanation)),	 % Si existe un deseo HPDesire de alta prioridad:
-						                         % (NO es un <<<CHOICE POINT>>>: una falla en la 
-						                         % siguiente línea no debería buscar alternativas).
+						                         % (NO es un <<<CHOICE POINT>>>: una falla en la
+						                         % siguiente lï¿½nea no deberï¿½a buscar alternativas).
 
-	not(intention(HPDesire)),        % y no es el caso que coincide con la intención actual,
+	not(intention(HPDesire)),        % y no es el caso que coincide con la intenciï¿½n actual,
 
 	write('High-priority Desire: '), write(HPDesire), write(', since '), writeln(Explanation), nl,
 
-	retractall(intention(_)),     % (Estratégicamente colocado luego del "choice point", para que,
-	retractall(plan(_)),	      %	 ante la búsqueda de una intención alternativa (por no haberse encontrado un plan
-	                              %  para la anterior), la intención anterior se elimina y se hace assert de la nueva).
+	retractall(intention(_)),     % (Estratï¿½gicamente colocado luego del "choice point", para que,
+	retractall(plan(_)),	      %	 ante la bï¿½squeda de una intenciï¿½n alternativa (por no haberse encontrado un plan
+	                              %  para la anterior), la intenciï¿½n anterior se elimina y se hace assert de la nueva).
 
-	assert(intention(HPDesire)),     % se establece HPDesire como intención actual.
+	assert(intention(HPDesire)),     % se establece HPDesire como intenciï¿½n actual.
 	assert(plan([HPDesire])).
 
 deliberate:-       % Si
 
-	(   not(intention(_)),                     % actualmente no hay intención
+	(   not(intention(_)),                     % actualmente no hay intenciï¿½n
 	    writeln('There is no intention '), nl
 	;                                          % o
 	    intention(Int),
-	    achieved(Int),                         % la intención corriente fue lograda
+	    achieved(Int),                         % la intenciï¿½n corriente fue lograda
 	    write('Intention '), write(Int), writeln(' achieved.')
 	;					   % o
 
-	    plan([]),                              % el plan para para la intención actual fue consumido
+	    plan([]),                              % el plan para para la intenciï¿½n actual fue consumido
 	    writeln('Plan consumed.')
 	;                                          % o
 	    (
 
-	        plan(Plan), Plan \= [], not(feasible(Plan))   % el plan corriente se tornó no factible, o
+	        plan(Plan), Plan \= [], not(feasible(Plan))   % el plan corriente se tornï¿½ no factible, o
 
 		;
 
 	        not(plan(_))                                  % no hay plan. Esto ocurre si se descubre que el plan actual es no
-	                                                      % factible al intentar obtener, sin éxito, el (sub) plan para la
-	                                                      % siguiente acción de alto nivel (falla el next_primitive_action).
+	                                                      % factible al intentar obtener, sin ï¿½xito, el (sub) plan para la
+	                                                      % siguiente acciï¿½n de alto nivel (falla el next_primitive_action).
 	    ),
 	    writeln('Current plan became infeasible.'), nl
 	),
@@ -129,27 +129,27 @@ deliberate:-       % Si
 
 	findall(Desire, desire(Desire, _Explanation), Desires),  % Calcular el conjunto de deseos
 	write('Desires: '), writeln(Desires),nl,
-	select_intention(NewInt, NewExpl, Desires),   % Seleccionar una intención
+	select_intention(NewInt, NewExpl, Desires),   % Seleccionar una intenciï¿½n
 	                                              % (deseo que el agente se compromete a lograr)
 	                                              % <<<CHOICE POINT>>> (Posibilidad de backtracking)
 
 	write('New Intention: '), write(NewInt), write(', since '), writeln(NewExpl), nl,
 
 	retractall(intention(_)),  % (Estrategicamente colocado luego del "choice point", para que,
-	retractall(plan(_)),	   % ante la búsqueda de una intención alternativa (por no haberse encontrado un plan
-	                           % para la anterior), la intención anterior se elimina y se asserta la nueva.)
+	retractall(plan(_)),	   % ante la bï¿½squeda de una intenciï¿½n alternativa (por no haberse encontrado un plan
+	                           % para la anterior), la intenciï¿½n anterior se elimina y se asserta la nueva.)
 
-	assert(intention(NewInt)),                    % Recordar la nueva intención seleccionada.
+	assert(intention(NewInt)),                    % Recordar la nueva intenciï¿½n seleccionada.
 	assert(plan([NewInt])).
 
 
 deliberate:-
 	intention(Int),
 	write('Current Intention: '), writeln(Int), nl.
-	% Caso contrario, se continúa con la intención y plan corrientes
+	% Caso contrario, se continï¿½a con la intenciï¿½n y plan corrientes
 
 
-deliberate:-            % Si llega acá significa que falló el next_primitive_action al planificar la siguiente acción
+deliberate:-            % Si llega acï¿½ significa que fallï¿½ el next_primitive_action al planificar la siguiente acciï¿½n
 	                % de alto nivel de un plan factible. Ejecuto nuevamente el delibarate.
 	deliberate.
 
@@ -166,10 +166,10 @@ deliberate:-            % Si llega acá significa que falló el next_primitive_act
 % desire(-Desire, -Explanation)
 %
 % Retorna un deseo Desire (actualmente activo de acuerdo a las creencias
-% del agente). Asociado al deseo se retorna una explicación,
+% del agente). Asociado al deseo se retorna una explicaciï¿½n,
 % especificando las razones por las cuales Desire se considera
-% actualmente un deseo. En su forma más básica Explanation puede ser un
-% string con una descripción narrada (breve) de dichas razones,
+% actualmente un deseo. En su forma mï¿½s bï¿½sica Explanation puede ser un
+% string con una descripciï¿½n narrada (breve) de dichas razones,
 % que luego puede ser impresa por pantalla.
 
 %_____________________________________________________________________
@@ -205,8 +205,8 @@ desire(move_at_random, 'quiero estar siempre en movimiento!').
 
 % << TODO: DEFINIR OTROS DESEOS >>
 %
-% ACLARACIÓN: Pueden modificarse los deseos considerados, y la
-% implementación actual de desire/2, si se lo considera apropiado.
+% ACLARACIï¿½N: Pueden modificarse los deseos considerados, y la
+% implementaciï¿½n actual de desire/2, si se lo considera apropiado.
 
 
 
@@ -215,15 +215,15 @@ desire(move_at_random, 'quiero estar siempre en movimiento!').
 % high_priority(-HPDesire, Explanation).
 %
 % Determina si existe un deseo HPDesire de alta prioridad, es
-% decir, tal que implica abandonar la intención actual. En caso de
+% decir, tal que implica abandonar la intenciï¿½n actual. En caso de
 % existir tal deseo de alta prioridad, lo retorna.
 %
-% Análogamente al predicado desire/2, asociado al deseo HPDesire de alta
-% prioridad se retorna una explicación, especificando las
+% Anï¿½logamente al predicado desire/2, asociado al deseo HPDesire de alta
+% prioridad se retorna una explicaciï¿½n, especificando las
 % razones por las cuales HPDesire se considera un deseo que
-% debe adoptarse inmediatamente como intención.
-% En su forma más básica Explanation puede ser un string con una
-% descripción narrada (breve) de dichas razones, que luego puede ser
+% debe adoptarse inmediatamente como intenciï¿½n.
+% En su forma mï¿½s bï¿½sica Explanation puede ser un string con una
+% descripciï¿½n narrada (breve) de dichas razones, que luego puede ser
 % impresa por pantalla.
 :- dynamic high_priority/2.
 
@@ -238,7 +238,7 @@ high_priority(rest, 'necesito descansar'):-  % runs low of stamina
 
 % << TODO: DEFINIR >>
 %
-% ACLARACIÓN: Puede modificarse la implementación actual de
+% ACLARACIï¿½N: Puede modificarse la implementaciï¿½n actual de
 % high_priority/2, si se lo considera apropiado.
 
 
@@ -254,16 +254,16 @@ high_priority(rest, 'necesito descansar'):-  % runs low of stamina
 %
 % select_intention(-Intention, -Explanation, +CurrentDesires).
 %
-% Selecciona uno de los deseos corrientes del agente como intención.
+% Selecciona uno de los deseos corrientes del agente como intenciï¿½n.
 %
-% En su forma más básica, define un orden de prioridad entre los deseos
-% del agente, seleccionando como intención al primero en este orden
+% En su forma mï¿½s bï¿½sica, define un orden de prioridad entre los deseos
+% del agente, seleccionando como intenciï¿½n al primero en este orden
 % de prioridad.
 %
-% Tiene múltiples soluciones. Esto es adrede: si
-% posteriormente a la selección de una intención (por parte de este
-% predicado) no se encuentra plan para alcanzarla, entonces se obtendrá
-% la siguiente intención (mediante backtracking), hasta encontrar una
+% Tiene mï¿½ltiples soluciones. Esto es adrede: si
+% posteriormente a la selecciï¿½n de una intenciï¿½n (por parte de este
+% predicado) no se encuentra plan para alcanzarla, entonces se obtendrï¿½
+% la siguiente intenciï¿½n (mediante backtracking), hasta encontrar una
 % viable, o agotarlas a todas.
 
 
@@ -286,9 +286,9 @@ select_intention(rest, 'voy a recargar antes de encarar otro deseo', Desires):-
 % Conseguir un objeto que se halla tirado en el suelo
 %
 % De todos los posibles objetos tirados en el suelo que el agente desea tener,
-% selecciono como intención obtener aquel que se encuentra más cerca.
+% selecciono como intenciï¿½n obtener aquel que se encuentra mï¿½s cerca.
 
-select_intention(get(Obj), 'es el objeto más cercano de los que deseo obtener', Desires):-
+select_intention(get(Obj), 'es el objeto mï¿½s cercano de los que deseo obtener', Desires):-
 	findall(ObjPos, (member(get(Obj), Desires),
 			 at(Obj, ObjPos)),
 		Metas), % Obtengo posiciones de todos los objetos meta tirados en el suelo.
@@ -304,7 +304,7 @@ select_intention(get(Obj), 'es el objeto más cercano de los que deseo obtener', 
 % Si no existen objetos que deseen obtenerse, y existe el deseo de
 % descansar (stamina por debajo de 100), se decide ir a descansar.
 
-select_intention(rest, 'no tengo otra cosa más interesante que hacer', Desires):-
+select_intention(rest, 'no tengo otra cosa mï¿½s interesante que hacer', Desires):-
 	member(rest, Desires).
 
 
@@ -312,14 +312,14 @@ select_intention(rest, 'no tengo otra cosa más interesante que hacer', Desires):
 %
 % Move at random
 
-select_intention(move_at_random, 'no tengo otra cosa más interesante que hacer', Desires):-
+select_intention(move_at_random, 'no tengo otra cosa mï¿½s interesante que hacer', Desires):-
 	member(move_at_random, Desires).
 
 
 
-% << TODO: COMPLETAR DEFINICIóN >>
+% << TODO: COMPLETAR DEFINICIï¿½N >>
 %
-% ACLARACIÓN: Puede modificarse la implementación actual de
+% ACLARACIï¿½N: Puede modificarse la implementaciï¿½n actual de
 % select_intention/3, si se lo considera apropiado.
 
 
@@ -327,7 +327,7 @@ select_intention(move_at_random, 'no tengo otra cosa más interesante que hacer',
 %
 % achieved(+Intention).
 %
-% Determina si la intención Intention fue alcanzada. Esto es, si
+% Determina si la intenciï¿½n Intention fue alcanzada. Esto es, si
 % se verifica de acuerdo a las creencias del agente.
 
 
@@ -344,9 +344,9 @@ achieved(goto(Pos)):-
 	at([agent, me], Pos).
 
 
-% << TODO: COMPLETAR DEFINICIóN >>
+% << TODO: COMPLETAR DEFINICIï¿½N >>
 %
-% ACLARACIÓN: Puede modificarse la implementación actual de
+% ACLARACIï¿½N: Puede modificarse la implementaciï¿½n actual de
 % achieved/1, si se lo considera apropiado.
 
 
@@ -364,15 +364,15 @@ achieved(goto(Pos)):-
 %
 % planning_and_execution(-Action)
 %
-% Obtiene la siguiente acción primitiva Action correspondiente al plan
-% actual, removiéndola del plan. Nótese que la siguiente acción
-% del plan podría ser de alto nivel (no primitiva), en cuyo caso debe
+% Obtiene la siguiente acciï¿½n primitiva Action correspondiente al plan
+% actual, removiï¿½ndola del plan. Nï¿½tese que la siguiente acciï¿½n
+% del plan podrï¿½a ser de alto nivel (no primitiva), en cuyo caso debe
 % planificarse hasta llegar al nivel de acciones primitivas.
 % (Ver next_primitive_action/3).
 
 planning_and_execution(Action):-
 
-	retract(plan(Plan)),      % Ejecutar siguiente acción del plan.
+	retract(plan(Plan)),      % Ejecutar siguiente acciï¿½n del plan.
 
 	write('Following plan: '), writeln(Plan), nl,
 	next_primitive_action(Plan, Action, RestOfPlan),
@@ -385,71 +385,71 @@ planning_and_execution(Action):-
 %
 % planify(+HLAction, -Plan)
 %
-% Define una librería de Planes, es decir, un mapeo de acciones de alto
+% Define una librerï¿½a de Planes, es decir, un mapeo de acciones de alto
 % nivel (en particular, intenciones) a planes involucrando acciones de
 % menor nivel.
 %
-% Dada una acción HLAction de alto nivel, retorna un plan (involucrando
-% acciones de menor nivel) cuya ejecución equivalga al efecto de la
-% acción HLAction.
+% Dada una acciï¿½n HLAction de alto nivel, retorna un plan (involucrando
+% acciones de menor nivel) cuya ejecuciï¿½n equivalga al efecto de la
+% acciï¿½n HLAction.
 %
-% Debe definirse una regla de este predicado por cada acción de alto
-% nivel considerada por el agente (incluída las intenciones, que
-% constituyen las acciones de más alto nivel).
+% Debe definirse una regla de este predicado por cada acciï¿½n de alto
+% nivel considerada por el agente (incluï¿½da las intenciones, que
+% constituyen las acciones de mï¿½s alto nivel).
 %
-% La planificación de HLAction puede realizarse,
-% según el tipo de la acción, de las siguientes maneras:
+% La planificaciï¿½n de HLAction puede realizarse,
+% segï¿½n el tipo de la acciï¿½n, de las siguientes maneras:
 %
-%   a) simplemente especificando en forma "estática" la secuencia
+%   a) simplemente especificando en forma "estï¿½tica" la secuencia
 %      (lista) de acciones de menor nivel cuyo efecto equivale al de
 %       HLAction.
 %
-%   b) empleando un algoritmo de búsqueda (por ejemplo el implementado
+%   b) empleando un algoritmo de bï¿½squeda (por ejemplo el implementado
 %      para la etapa 2, permitiendo planificar el desplazamiento a una
-%      posición determinada)
+%      posiciï¿½n determinada)
 %
 %   c) empleando el algoritmo de planeamiento STRIPS (cuya
-%      implementación es provista por la cátedra), adecuado para
-%      realizar planificaciones de metas más complejas, como obtener un
+%      implementaciï¿½n es provista por la cï¿½tedra), adecuado para
+%      realizar planificaciones de metas mï¿½s complejas, como obtener un
 %      tesoro que se encuentra en una tumba.
 %
 %
-% La opción a admite la especificación de planes recursivos, donde en
-% particular, la última acción del plan para HLAction es la propia
+% La opciï¿½n a admite la especificaciï¿½n de planes recursivos, donde en
+% particular, la ï¿½ltima acciï¿½n del plan para HLAction es la propia
 % HLAction. Esto permite, por ejemplo, especificar que la
-% planificación de HLAction es [Action, HLAction], donde Action es
-% una acción que acerca al agente al cumplimiento de HLAction. Cuando
-% esa siguiente acción sea ejecutada y consumida, el agente vuelve a
-% considerar y planificar HLAction, obteniendo la siguiente acción, y
-% así siguiendo.
+% planificaciï¿½n de HLAction es [Action, HLAction], donde Action es
+% una acciï¿½n que acerca al agente al cumplimiento de HLAction. Cuando
+% esa siguiente acciï¿½n sea ejecutada y consumida, el agente vuelve a
+% considerar y planificar HLAction, obteniendo la siguiente acciï¿½n, y
+% asï¿½ siguiendo.
 %
 % Esta estrategia es ideal para intenciones/acciones que no pueden
 % planificarse por completo en un dado instante, resultando apropiado
-% establecer en cada turno cual es la siguiente acción para lograrlas
+% establecer en cada turno cual es la siguiente acciï¿½n para lograrlas
 % (por ejemplo, perseguir a un agente para saquearlo).
 %
 % Este plan recursivo se corta cuando los efectos de HLAction se logran
-% (achieved(HLAction)), o cuando falla la planificación de HLAction,
+% (achieved(HLAction)), o cuando falla la planificaciï¿½n de HLAction,
 % reflejando que ya no existe plan para la misma.
 %
-% IMPORTANTE: Este predicado entregará soluciones alternativas (por
+% IMPORTANTE: Este predicado entregarï¿½ soluciones alternativas (por
 % demanda), correspondientes a planes alternativos para la meta
-% considerada. Analizar según la acción que se esté planificando,
+% considerada. Analizar segï¿½n la acciï¿½n que se estï¿½ planificando,
 % si es deseable brindar soluciones alternativas.
 
 
 
-planify(get(Obj), Plan):- % Planificación para obtener de un objeto que yace en el suelo
+planify(get(Obj), Plan):- % Planificaciï¿½n para obtener de un objeto que yace en el suelo
 	at(Obj, Pos),
 	Plan = [goto(Pos), pickup(Obj)].
 
 
-planify(goto(PosDest), Plan):- % Planificación para desplazarse a un destino dado
+planify(goto(PosDest), Plan):- % Planificaciï¿½n para desplazarse a un destino dado
 	buscar_plan_desplazamiento([PosDest], Plan, _MetaLograda),
-	!. % Evita la búsqueda de soluciones alternativas para un plan de desplazamiento.
+	!. % Evita la bï¿½squeda de soluciones alternativas para un plan de desplazamiento.
 
 
-planify(rest, Plan):- % Planificación para desplazarse a un destino dado
+planify(rest, Plan):- % Planificaciï¿½n para desplazarse a un destino dado
 
 	at([inn, _H], PosH),  % Selecciona una posada para ir a descansar.
 				 % <<<CHOICE POINT>>> (Posibilidad de backtracking)
@@ -457,28 +457,28 @@ planify(rest, Plan):- % Planificación para desplazarse a un destino dado
 	Plan = [goto(PosH), stay].
 
 
-planify(stay, [noop , stay]).                     % Planificación recursiva. En este caso permite repetir indefinidamente
-                                                  % una acción (noop) hasta que la intención de alto nivel corriente
-                                                  % (rest) sea lograda (achieved/1). Esto se hizo así dado que resulta
-                                                  % más simple que predecir de antemano cuantos turnos exactamente debe
-                                                  % permanecer el agente para recargarse por completo (nótese que el agente
-						  % podría incluso sufrir ataques mientras está en la posada, siendo imposible
+planify(stay, [noop , stay]).                     % Planificaciï¿½n recursiva. En este caso permite repetir indefinidamente
+                                                  % una acciï¿½n (noop) hasta que la intenciï¿½n de alto nivel corriente
+                                                  % (rest) sea lograda (achieved/1). Esto se hizo asï¿½ dado que resulta
+                                                  % mï¿½s simple que predecir de antemano cuantos turnos exactamente debe
+                                                  % permanecer el agente para recargarse por completo (nï¿½tese que el agente
+						  % podrï¿½a incluso sufrir ataques mientras estï¿½ en la posada, siendo imposible
 						  % planificar de antemano cuantos turnos debe permanecer en la posada para
 						  % reponerse por completo)
 
 
-planify(move_at_random, Plan):- % Planificación para moverse aleatoriamente
+planify(move_at_random, Plan):- % Planificaciï¿½n para moverse aleatoriamente
 
 	findall(Node, node(Node, _, _), PossibleDestPos),
 
-	random_member(DestPos, PossibleDestPos), % Selecciona aleatoriamente una posición destino.
+	random_member(DestPos, PossibleDestPos), % Selecciona aleatoriamente una posiciï¿½n destino.
 				                 % <<<CHOICE POINT>>> (Posibilidad de backtracking)
 	Plan = [goto(DestPos)].
 
 
-% << TODO: COMPLETAR DEFINICIóN >>
+% << TODO: COMPLETAR DEFINICIï¿½N >>
 %
-% ACLARACIÓN: Puede modificarse la implementación actual de
+% ACLARACIï¿½N: Puede modificarse la implementaciï¿½n actual de
 % planify/2, si se lo considera apropiado.
 
 
@@ -489,8 +489,8 @@ planify(move_at_random, Plan):- % Planificación para moverse aleatoriamente
 %
 % next_primitive_action(+Plan, -NextAction, -RemainingPlan)
 %
-% Selecciona y retorna la siguiente acción primitiva del plan de alto
-% nivel, además del devolver el plan restante.
+% Selecciona y retorna la siguiente acciï¿½n primitiva del plan de alto
+% nivel, ademï¿½s del devolver el plan restante.
 %
 % Planteo Recursivo:
 %
@@ -499,26 +499,26 @@ planify(move_at_random, Plan):- % Planificación para moverse aleatoriamente
 % CB: Si A_1 es primitiva, entonces NextAction = A_1 y RemainingPlan =
 % [A_2, ..., A_n].
 %
-% CR: Si A_1 es de alto nivel, se hallará mediante planify/2 una
+% CR: Si A_1 es de alto nivel, se hallarï¿½ mediante planify/2 una
 % secuencia de acciones de menor nivel [A_1.1, A_1.2, ..., A_1.k], o
-% (sub)plan, para A_1, dando lugar a una versión refinada de Plan:
+% (sub)plan, para A_1, dando lugar a una versiï¿½n refinada de Plan:
 %
 %          PlanRef = [A_1.1, A_1.2, ..., A_1.k, A_2, ..., A_n]
 %
-% Luego se obtiene recursivamente la siguinte acción, pero esta vez para
+% Luego se obtiene recursivamente la siguinte acciï¿½n, pero esta vez para
 % PlanRef.
 %
 % CR 2: Los efectos de A_1 se cumplen en el estado actual del mundo.
-% Luego se obtiene recursivamente la siguinte acción, pero esta vez para
+% Luego se obtiene recursivamente la siguinte acciï¿½n, pero esta vez para
 % [A_2, ..., A_n].
 %
-% Observación: A modo de mantener registro de la descomposición de
+% Observaciï¿½n: A modo de mantener registro de la descomposiciï¿½n de
 % acciones de alto nivel en subplanes, la estructura empleada por este
 % predicado para representar planes incolucra el uso de "marcadores".
 % Concretamente, en CR, PranRef = [A_1.1, A_1.2, ..., A_1.k, [A_1], A_2,
 % ..., A_n] donde [A_1] es un marcador indiciando que las acciones que
 % se encuentran a la izquierda corresponden al sub-plan para lograr A_1.
-% Luego, el propósito del predicado remove_executed_ancestors/2 empleado
+% Luego, el propï¿½sito del predicado remove_executed_ancestors/2 empleado
 % en CB y CR 2 es eliminar los marcadores de acciones de alto nivel
 % cuyo sub-plan asociado fue ejecutado por completo.
 
@@ -527,9 +527,9 @@ planify(move_at_random, Plan):- % Planificación para moverse aleatoriamente
 
 next_primitive_action([Action | RestOfPlan], NextAction, RemainingPlan):-
 	% Este caso permite, por ejemplo, terminar exitosamente un programa para una HLAction
-	% cuando ésta ya fue lograda (debe especificarse achieved/1 para HLAction).
+	% cuando ï¿½sta ya fue lograda (debe especificarse achieved/1 para HLAction).
 
-	clause(achieved(Action), _), % Existe especificación de cuándo Action se considera lograda.
+	clause(achieved(Action), _), % Existe especificaciï¿½n de cuï¿½ndo Action se considera lograda.
 
 	achieved(Action), % Action fue lograda.
 	!,
@@ -552,7 +552,7 @@ next_primitive_action([HLAction | RestOfPlan], Action, RemainingPlan):-
 
         if_fails_do(
 
-	clause(planify(HLAction, _SubPlan), _), % Planificación definida para HLAction.
+	clause(planify(HLAction, _SubPlan), _), % Planificaciï¿½n definida para HLAction.
 
 		    throw_exception((
 			  write(HLAction),
@@ -568,15 +568,15 @@ next_primitive_action([HLAction | RestOfPlan], Action, RemainingPlan):-
 	     ;
 
 	     (write('Planning for '), write(HLAction), write(' failed.'), nl, fail)
-	                                 % Si definitivamente no encuentra plan para la intención seleccionada,
+	                                 % Si definitivamente no encuentra plan para la intenciï¿½n seleccionada,
 	                                 % luego de buscar planes alternativos (backtracking sobre planify(HLAction, SubPlan)),
-				         % selecciona otra intención mediante backtracking en deliberate/0.
+				         % selecciona otra intenciï¿½n mediante backtracking en deliberate/0.
 
 	),
 
 	(   last_element(HLAction, SubPlan),
 	    append(SubPlan, RestOfPlan, LowerLevelPlan) % Se evita introducir el marcador de super-accion
-							% si la acción de alto nivel coincide con la última del subplan.
+							% si la acciï¿½n de alto nivel coincide con la ï¿½ltima del subplan.
 	;
 	    append(SubPlan, [[HLAction]|RestOfPlan], LowerLevelPlan)
 	),
@@ -588,9 +588,9 @@ next_primitive_action([HLAction | RestOfPlan], Action, RemainingPlan):-
 
 	next_primitive_action(LowerLevelPlan, Action, RemainingPlan).
 
-% Observación: si en particular Subplan es [] (esto puede
+% Observaciï¿½n: si en particular Subplan es [] (esto puede
 % ocurrir cuando los efectos de HLAction ya valen en
-% el estado actual del mundo) entonces ejecuta la siguiente acción de
+% el estado actual del mundo) entonces ejecuta la siguiente acciï¿½n de
 % RestOfPlan.
 
 
@@ -613,7 +613,7 @@ remove_executed_ancestors(Clean, Clean).
 % primitive(ActionName).
 %
 % Especifica las acciones primitivas del agente, es decir, aquellas que
-% no pueden descomponerse en acciones más básicas.
+% no pueden descomponerse en acciones mï¿½s bï¿½sicas.
 
 primitive(move(_)).
 primitive(pickup(_)).
@@ -628,15 +628,15 @@ primitive(noop).
 %
 % feasible(+Plan).
 %
-% Determina si el plan jerárquico Plan es factible de acuerdo a las
+% Determina si el plan jerï¿½rquico Plan es factible de acuerdo a las
 % creencias actuales del agente.
 
 feasible(Plan):-
 	dynamic_state_rels(Init),
 	project(Plan, Init, _Finish).
-	% El plan puede ejecutarse con éxito a partir del estado actual. Si alguna de las precondiciones de las
-        % acciones del plan ya no se satisfacen (por ejemplo, el tesoro que voy a juntar ya no se encuentra más
-        % en la posición que recordaba), entonces project/3 fallará, reflejando que el plan no es factible.
+	% El plan puede ejecutarse con ï¿½xito a partir del estado actual. Si alguna de las precondiciones de las
+        % acciones del plan ya no se satisfacen (por ejemplo, el tesoro que voy a juntar ya no se encuentra mï¿½s
+        % en la posiciï¿½n que recordaba), entonces project/3 fallarï¿½, reflejando que el plan no es factible.
 
 
 
@@ -656,7 +656,7 @@ feasible(Plan):-
 %
 % start_ag
 %
-% Solicita la registración al juego, y recuerda su nombre.
+% Solicita la registraciï¿½n al juego, y recuerda su nombre.
 
 
 start_ag:- AgName = agentBDI,
@@ -675,9 +675,9 @@ s:- start_ag.
 %
 % start_ag_instance(+InstanceID)
 %
-% Solicita la registración al juego de una instancia, y recuerda su
-% nombre, que será el de la versión original seguido del InstanceID
-% entre paréntesis.
+% Solicita la registraciï¿½n al juego de una instancia, y recuerda su
+% nombre, que serï¿½ el de la versiï¿½n original seguido del InstanceID
+% entre parï¿½ntesis.
 
 
 start_ag_instance(InstanceID):-
@@ -691,80 +691,3 @@ start_ag_instance(InstanceID):-
 		    disconnect.
 
 si(InstanceID):- start_ag_instance(InstanceID).
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
