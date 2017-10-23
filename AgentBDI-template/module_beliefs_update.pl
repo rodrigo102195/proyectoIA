@@ -27,7 +27,6 @@ update_beliefs(Perc):-
 	% Se elimina de la KB la información que no es necesaria recordar
 	retractall(time(_)),
 	retractall(entity_descr([agent,me],_)),
-
 	% Se agrega a la KB la información nueva, actualizando la antigua si es necesario
 	member(time(T), Perc), assert(time(T)),
 	forall(member(entity_descr(Id,Desc), Perc), updateDesc(entity_descr(Id,Desc))),

@@ -182,6 +182,16 @@ deliberate:-            % Si llega ac� significa que fall� el next_primitive
 desire(get([gold, TrName]), 'quiero apoderarme de muchos tesoros!'):-
 	at([gold, TrName], _PosTr).
 
+%_____________________________________________________________________
+%
+% Get treasure at grave
+%
+% Si recuerdo que un tesoro dado se encuentra en una tumba, tener
+% ese tesoro es una meta.
+
+%desire(obtenerTesorosTumba(IdGrave,IdGold), 'quiero apoderarme de muchos tesoros!'):-
+	%has([grave,IdGrave],[gold,IdGold]),
+
 
 %_____________________________________________________________________
 %
@@ -192,6 +202,17 @@ desire(get([gold, TrName]), 'quiero apoderarme de muchos tesoros!'):-
 
 desire(get([potion, TrName]), 'quiero apoderarme de muchas pociones!'):-
 	at([potion, TrName], _PosTr).
+
+%_____________________________________________________________________
+%
+% drop treasures at home
+
+desire(dejarTesoros, 'Quiero dejar los tesoros en el home!'):-
+  write('Voy a ver lo de dejar los tesoros'),nl,
+  findall(Id,has([agent,me],[gold,Id]),Lista),
+  length(Lista,Cantidad),
+  Cantidad>2.
+
 
 
 %_____________________________________________________________________
@@ -242,7 +263,7 @@ desire(move_at_random, 'quiero estar siempre en movimiento!').
 high_priority(rest, 'necesito descansar'):-  % runs low of stamina
 
 	property([agent, me], life, St),
-	St < 40, % running low of stamina...
+	St < 50, % running low of stamina...
 
 	once(at([inn, _HName], _Pos)). % se conoce al menos una posada
 
@@ -289,7 +310,16 @@ high_priority(rest, 'necesito descansar'):-  % runs low of stamina
 select_intention(rest, 'voy a recargar antes de encarar otro deseo', Desires):-
 	member(rest, Desires),
 	property([agent, me], life, St),
-	St < 70.
+	St < 80.
+
+%_____________________________________________________________________
+%
+% Dejar los tesoros en el home
+%
+% Voy a dejar todos mis tesoros en el home
+select_intention(dejarTesoros, 'es el objeto m�s cercano de los que deseo obtener', Desires):-
+	member(dejarTesoros,Desires).
+
 
 
 %_____________________________________________________________________
@@ -298,7 +328,7 @@ select_intention(rest, 'voy a recargar antes de encarar otro deseo', Desires):-
 %
 % De todos los posibles objetos tirados en el suelo que el agente desea tener,
 % selecciono como intenci�n obtener aquel que se encuentra m�s cerca.
-select_intention(get([gold,Id]), 'es el objeto m�s cercano de los que deseo obtener', Desires):-
+select_intention(get([gold,Id]), 'es el tesoro m�s cercano de los que deseo obtener', Desires):-
 	findall(ObjPos, (member(get([gold,Id]), Desires),
 			 at([gold,Id], ObjPos)),
 		Metas), % Obtengo posiciones de todos los objetos meta tirados en el suelo.
@@ -306,8 +336,8 @@ select_intention(get([gold,Id]), 'es el objeto m�s cercano de los que deseo ob
 	member(get([gold,Id]), Desires),
         at([gold,Id], CloserObjPos).
 
-
-select_intention(get([potion,Id]), 'es el objeto m�s cercano de los que deseo obtener', Desires):-
+%select_intention(obtenerTesoroEnTumba())
+select_intention(get([potion,Id]), 'es la posion m�s cercana de las que deseo obtener', Desires):-
 	findall(ObjPos, (member(get([potion,Id]), Desires),
 			 at([potion,Id], ObjPos)),
 		Metas), % Obtengo posiciones de todos los objetos meta tirados en el suelo.
@@ -467,14 +497,20 @@ planify(goto(PosDest), Plan):- % Planificaci�n para desplazarse a un destino d
 	buscar_plan_desplazamiento([PosDest], Plan, _MetaLograda),
 	!. % Evita la b�squeda de soluciones alternativas para un plan de desplazamiento.
 
-
 planify(rest, Plan):- % Planificaci�n para desplazarse a un destino dado
-
-	at([inn, _H], PosH),  % Selecciona una posada para ir a descansar.
-				 % <<<CHOICE POINT>>> (Posibilidad de backtracking)
-
+  findall(Pos,at([inn,_Id],Pos),ListaPos),
+  buscar_plan_desplazamiento(ListaPos,_Plan,PosH),
 	Plan = [goto(PosH), stay].
 
+%Voy a definir las planificaciones de dejar los tesoros en el home
+planify(dejarTesoros,Plan):- %Planificacion para dejar un tesoro en el home
+  at([home,Id],Destino),
+  entity_descr([agent,me],DescripcionAgente),
+  member([home,Id],DescripcionAgente),
+  Plan=[goto(Destino),tirarTodosLosTesoros].
+
+planify(tirarTodosLosTesoros,Plan):-
+  findall(drop([gold,Id]),has([agent,me],[gold,Id]),Plan).
 
 planify(stay, [noop , stay]).                     % Planificaci�n recursiva. En este caso permite repetir indefinidamente
                                                   % una acci�n (noop) hasta que la intenci�n de alto nivel corriente
@@ -494,7 +530,8 @@ planify(move_at_random, Plan):- % Planificaci�n para moverse aleatoriamente
 				                 % <<<CHOICE POINT>>> (Posibilidad de backtracking)
 	Plan = [goto(DestPos)].
 
-
+%planify(obtenerTesorosTumba(IdGrave,IdGold)):- %Planificacion
+%  strips(,Plan)
 % << TODO: COMPLETAR DEFINICI�N >>
 %
 % ACLARACI�N: Puede modificarse la implementaci�n actual de
