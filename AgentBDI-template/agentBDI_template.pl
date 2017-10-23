@@ -12,7 +12,7 @@
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%                          %%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%           AGENT	   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%           AGENT	         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%                          %%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%       EXECUTION CYCLE	   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%                          %%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -181,6 +181,17 @@ deliberate:-            % Si llega ac� significa que fall� el next_primitive
 
 desire(get([gold, TrName]), 'quiero apoderarme de muchos tesoros!'):-
 	at([gold, TrName], _PosTr).
+
+
+%_____________________________________________________________________
+%
+% Get potion at position
+%
+% Si recuerdo que una poción dada se encuentra tirada en el piso, tener
+% esa poción es una meta.
+
+desire(get([potion, TrName]), 'quiero apoderarme de muchas pociones!'):-
+	at([potion, TrName], _PosTr).
 
 
 %_____________________________________________________________________
