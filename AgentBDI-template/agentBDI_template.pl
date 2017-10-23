@@ -298,14 +298,22 @@ select_intention(rest, 'voy a recargar antes de encarar otro deseo', Desires):-
 %
 % De todos los posibles objetos tirados en el suelo que el agente desea tener,
 % selecciono como intenci�n obtener aquel que se encuentra m�s cerca.
-
-select_intention(get(Obj), 'es el objeto m�s cercano de los que deseo obtener', Desires):-
-	findall(ObjPos, (member(get(Obj), Desires),
-			 at(Obj, ObjPos)),
+select_intention(get([gold,Id]), 'es el objeto m�s cercano de los que deseo obtener', Desires):-
+	findall(ObjPos, (member(get([gold,Id]), Desires),
+			 at([gold,Id], ObjPos)),
 		Metas), % Obtengo posiciones de todos los objetos meta tirados en el suelo.
 	buscar_plan_desplazamiento(Metas, _Plan, CloserObjPos),
-	member(get(Obj), Desires),
-        at(Obj, CloserObjPos).
+	member(get([gold,Id]), Desires),
+        at([gold,Id], CloserObjPos).
+
+
+select_intention(get([potion,Id]), 'es el objeto m�s cercano de los que deseo obtener', Desires):-
+	findall(ObjPos, (member(get([potion,Id]), Desires),
+			 at([potion,Id], ObjPos)),
+		Metas), % Obtengo posiciones de todos los objetos meta tirados en el suelo.
+	buscar_plan_desplazamiento(Metas, _Plan, CloserObjPos),
+	member(get([potion,Id]), Desires),
+        at([potion,Id], CloserObjPos).
 
 
 %_____________________________________________________________________
