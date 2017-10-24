@@ -23,8 +23,6 @@
 %
 
 update_beliefs(Perc):-
-	write('Descripciones conocidas: '),nl,
-	forall(entity_descr(Id,Desc),write(entity_descr(Id,Desc))),
 	% Se elimina de la KB la información que no es necesaria recordar
 	retractall(time(_)),
 	retractall(entity_descr([agent,me],_)),
