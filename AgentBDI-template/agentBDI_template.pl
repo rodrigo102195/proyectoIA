@@ -189,8 +189,8 @@ desire(get([gold, TrName]), 'quiero apoderarme de muchos tesoros!'):-
 % Si recuerdo que un tesoro dado se encuentra en una tumba, tener
 % ese tesoro es una meta.
 
-%desire(obtenerTesorosTumba(IdGrave,IdGold), 'quiero apoderarme de muchos tesoros!'):-
-	%has([grave,IdGrave],[gold,IdGold]),
+desire(abrirTumba(IdGrave), 'quiero apoderarme de muchos tesoros!'):-
+	has([grave,IdGrave],[gold,_IdGold]).
 
 
 %_____________________________________________________________________
@@ -211,7 +211,7 @@ desire(dejarTesoros, 'Quiero dejar los tesoros en el home!'):-
   write('Voy a ver lo de dejar los tesoros'),nl,
   findall(Id,has([agent,me],[gold,Id]),Lista),
   length(Lista,Cantidad),
-  Cantidad>2.
+  Cantidad>0.
 
 
 
@@ -312,15 +312,15 @@ select_intention(rest, 'voy a recargar antes de encarar otro deseo', Desires):-
 	property([agent, me], life, St),
 	St < 80.
 
+
+
 %_____________________________________________________________________
 %
-% Dejar los tesoros en el home
+% Abrir la tumba que posee oro
 %
-% Voy a dejar todos mis tesoros en el home
-select_intention(dejarTesoros, 'es el objeto m�s cercano de los que deseo obtener', Desires):-
-	member(dejarTesoros,Desires).
-
-
+select_intention(abrirTumba(IdGrave),' Quiero abrir una tumba',Desires):-
+  member(abrirTumba(IdGrave),Desires),
+  has([agent,me],[potion,_IdPotion]).
 
 %_____________________________________________________________________
 %
@@ -328,22 +328,28 @@ select_intention(dejarTesoros, 'es el objeto m�s cercano de los que deseo obte
 %
 % De todos los posibles objetos tirados en el suelo que el agente desea tener,
 % selecciono como intenci�n obtener aquel que se encuentra m�s cerca.
-select_intention(get([gold,Id]), 'es el tesoro m�s cercano de los que deseo obtener', Desires):-
-	findall(ObjPos, (member(get([gold,Id]), Desires),
-			 at([gold,Id], ObjPos)),
+select_intention(get(Obj), 'es el tesoro m�s cercano de los que deseo obtener', Desires):-
+	findall(ObjPos, (member(get(Obj), Desires),
+			 at(Obj, ObjPos)),
 		Metas), % Obtengo posiciones de todos los objetos meta tirados en el suelo.
 	buscar_plan_desplazamiento(Metas, _Plan, CloserObjPos),
-	member(get([gold,Id]), Desires),
-        at([gold,Id], CloserObjPos).
+	member(get(Obj), Desires),
+        at(Obj, CloserObjPos).
 
-%select_intention(obtenerTesoroEnTumba())
-select_intention(get([potion,Id]), 'es la posion m�s cercana de las que deseo obtener', Desires):-
-	findall(ObjPos, (member(get([potion,Id]), Desires),
-			 at([potion,Id], ObjPos)),
-		Metas), % Obtengo posiciones de todos los objetos meta tirados en el suelo.
-	buscar_plan_desplazamiento(Metas, _Plan, CloserObjPos),
-	member(get([potion,Id]), Desires),
-        at([potion,Id], CloserObjPos).
+%_____________________________________________________________________
+%
+% Dejar los tesoros en el home
+%
+% Voy a dejar todos mis tesoros en el home
+select_intention(dejarTesoros, ' Voy a dejar todos mis tesoros en el home', Desires):-
+	member(dejarTesoros,Desires).
+%select_intention(get([potion,Id]), 'es la posion m�s cercana de las que deseo obtener', Desires):-
+	%findall(ObjPos, (member(get([potion,Id]), Desires),
+		%	 at([potion,Id], ObjPos)),
+	%	Metas), % Obtengo posiciones de todos los objetos meta tirados en el suelo.
+	%buscar_plan_desplazamiento(Metas, _Plan, CloserObjPos),
+	%member(get([potion,Id]), Desires),
+  %      at([potion,Id], CloserObjPos).
 
 
 %_____________________________________________________________________
@@ -511,6 +517,12 @@ planify(dejarTesoros,Plan):- %Planificacion para dejar un tesoro en el home
 
 planify(tirarTodosLosTesoros,Plan):-
   findall(drop([gold,Id]),has([agent,me],[gold,Id]),Plan).
+
+  %Abrir tumba
+  planify(abrirTumba(IdGrave),Plan):-
+    at([grave,IdGrave],PosGrave),
+    has([agent,me],[potion,IdPotion]),
+    Plan=[goto(PosGrave),cast_spell(open([grave,IdGrave],[potion,IdPotion]))].
 
 planify(stay, [noop , stay]).                     % Planificaci�n recursiva. En este caso permite repetir indefinidamente
                                                   % una acci�n (noop) hasta que la intenci�n de alto nivel corriente
