@@ -225,6 +225,13 @@ desire(rest, 'quiero estar descansado'):-
 	St < 100.
 
 
+%_____________________________________________________________________
+%
+% Recorrer mapa
+
+
+desire(recorrer_mapa, 'quiero recorrer el mapa').
+
 
 %_____________________________________________________________________
 %
@@ -298,8 +305,6 @@ high_priority(rest, 'necesito descansar'):-  % runs low of stamina
 % la siguiente intenci�n (mediante backtracking), hasta encontrar una
 % viable, o agotarlas a todas.
 
-
-
 %_____________________________________________________________________
 %
 % Rest before commiting to any other desire
@@ -311,8 +316,6 @@ select_intention(rest, 'voy a recargar antes de encarar otro deseo', Desires):-
 	member(rest, Desires),
 	property([agent, me], life, St),
 	St < 80.
-
-
 
 %_____________________________________________________________________
 %
@@ -351,7 +354,6 @@ select_intention(dejarTesoros, ' Voy a dejar todos mis tesoros en el home', Desi
 	%member(get([potion,Id]), Desires),
   %      at([potion,Id], CloserObjPos).
 
-
 %_____________________________________________________________________
 %
 % Rest
@@ -362,6 +364,18 @@ select_intention(dejarTesoros, ' Voy a dejar todos mis tesoros en el home', Desi
 select_intention(rest, 'no tengo otra cosa m�s interesante que hacer', Desires):-
 	member(rest, Desires).
 
+%_____________________________________________________________________
+%
+% Recorrer mapa desconocido
+%
+% Si no existen objetos que deseen obtenerse, y existe el deseo de
+% recorrer el mapa desconocido, se decide ir a recorrer el mapa.
+
+select_intention(recorrer_mapa, 'no tengo otra cosa m�s interesante que hacer', Desires):-
+	member(recorrer_mapa, Desires),
+  node(_Id, _Vec, Ady),
+  member([IdAdy, _Costo], Ady),
+  not(node(IdAdy, _VecAdy, _Ady)).
 
 %_____________________________________________________________________
 %
@@ -369,8 +383,6 @@ select_intention(rest, 'no tengo otra cosa m�s interesante que hacer', Desires
 
 select_intention(move_at_random, 'no tengo otra cosa m�s interesante que hacer', Desires):-
 	member(move_at_random, Desires).
-
-
 
 % << TODO: COMPLETAR DEFINICI�N >>
 %
@@ -498,7 +510,6 @@ planify(get(Obj), Plan):- % Planificaci�n para obtener de un objeto que yace e
 	at(Obj, Pos),
 	Plan = [goto(Pos), pickup(Obj)].
 
-
 planify(goto(PosDest), Plan):- % Planificaci�n para desplazarse a un destino dado
 	buscar_plan_desplazamiento([PosDest], Plan, _MetaLograda),
 	!. % Evita la b�squeda de soluciones alternativas para un plan de desplazamiento.
@@ -518,11 +529,18 @@ planify(dejarTesoros,Plan):- %Planificacion para dejar un tesoro en el home
 planify(tirarTodosLosTesoros,Plan):-
   findall(drop([gold,Id]),has([agent,me],[gold,Id]),Plan).
 
-  %Abrir tumba
-  planify(abrirTumba(IdGrave),Plan):-
-    at([grave,IdGrave],PosGrave),
-    has([agent,me],[potion,IdPotion]),
-    Plan=[goto(PosGrave),cast_spell(open([grave,IdGrave],[potion,IdPotion]))].
+%Abrir tumba
+planify(abrirTumba(IdGrave),Plan):-
+  at([grave,IdGrave],PosGrave),
+  has([agent,me],[potion,IdPotion]),
+  Plan=[goto(PosGrave),cast_spell(open([grave,IdGrave],[potion,IdPotion]))].
+
+% Recorrer mapa desconocido
+planify(recorrer_mapa, Plan):-
+  node(Id, _Vec, Ady),
+  member([IdAdy, _Costo], Ady),
+  not(node(IdAdy, _VecAdy, _Ady)),
+  Plan = [goto(Id)].
 
 planify(stay, [noop , stay]).                     % Planificaci�n recursiva. En este caso permite repetir indefinidamente
                                                   % una acci�n (noop) hasta que la intenci�n de alto nivel corriente
@@ -548,8 +566,6 @@ planify(move_at_random, Plan):- % Planificaci�n para moverse aleatoriamente
 %
 % ACLARACI�N: Puede modificarse la implementaci�n actual de
 % planify/2, si se lo considera apropiado.
-
-
 
 
 
