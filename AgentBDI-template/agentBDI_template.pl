@@ -7,7 +7,7 @@
 
 :- consult(extras_meta_preds).
 
-:- dynamic intention/1, plan/1, goals/1, unreachable/1.
+:- dynamic intention/1, plan/1.
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

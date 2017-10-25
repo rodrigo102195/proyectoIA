@@ -33,7 +33,6 @@ update_beliefs(Perc):-
 	forall(member(has(Owner,Item), Perc), updateHas(has(Owner,Item), T)),
 	cleanMissingAt(Perc),
 	cleanMissingHas(Perc),
-	cleanUnreachableAt(),
 
 	% Se agregan los nodos en el rango de visión que no estan en la KB
 	forall(member(node(Id,Vec,Ady), Perc), addNode(node(Id,Vec,Ady))).
@@ -57,20 +56,6 @@ cleanMissingAtAux(NodeId, Perc):-
 	retract(lastSeen(EntId,_)).
 
 cleanMissingAtAux(_,_).
-
-% Se eliminan de la KB los objetos inalcanzables por el agente
-cleanUnreachableAt():- forall(unreachable(NodeId), cleanUnreachableAtAux(NodeId)).
-
-cleanUnreachableAtAux(NodeId):-
-	at([_,EntId],NodeId),
-	retract(at([_,EntId],NodeId)),
-	retract(atPos([_,EntId],_)),
-	retract(lastSeen(EntId,_)),
-	forall(has([_,EntId],[_,ItemId]), retract(lastSeen(ItemId,_))),
-	retractall(has([_,EntId],_)),
-	retract(unreachable(NodeId)).
-
-cleanUnreachableAtAux(_).
 
 % Se eliminan de la KB los objetos que ya no son poseidos
 cleanMissingHas(Perc):- forall(member(node(Id,_,_), Perc), cleanMissingHasAux(Id, Perc)).
