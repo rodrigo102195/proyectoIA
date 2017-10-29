@@ -190,7 +190,8 @@ desire(get([gold, TrName]), 'quiero apoderarme de muchos tesoros!'):-
 % ese tesoro es una meta.
 
 desire(abrirTumba(IdGrave), 'quiero apoderarme de muchos tesoros!'):-
-	has([grave,IdGrave],[gold,_IdGold]).
+  has([grave,IdGrave],[gold,_IdGold]), %Por lo menos exista una tumba con tesoro
+  has([agent,me],[potion,_IdPotion]). %Tengas una pocion
 
 
 %_____________________________________________________________________
@@ -209,9 +210,7 @@ desire(get([potion, TrName]), 'quiero apoderarme de muchas pociones!'):-
 
 desire(dejarTesoros, 'Quiero dejar los tesoros en el home!'):-
   write('Voy a ver lo de dejar los tesoros'),nl,
-  findall(Id,has([agent,me],[gold,Id]),Lista),
-  length(Lista,Cantidad),
-  Cantidad>0.
+  has([agent,me],[gold,_Id]).
 
 
 
@@ -317,21 +316,31 @@ select_intention(rest, 'voy a recargar antes de encarar otro deseo', Desires):-
 	property([agent, me], life, St),
 	St < 80.
 
+  %_____________________________________________________________________
+  %
+  % Dejar los tesoros en el home
+  %
+  % Voy a dejar todos mis tesoros en el home
+  select_intention(dejarTesoros, ' Voy a dejar todos mis tesoros en el home', Desires):-
+  	member(dejarTesoros,Desires).
+
 %_____________________________________________________________________
 %
 % Abrir la tumba que posee oro
 %
-select_intention(abrirTumba(IdGrave),' Quiero abrir una tumba',Desires):-
-  member(abrirTumba(IdGrave),Desires),
-  has([agent,me],[potion,_IdPotion]).
+select_intention(abrirTumba(Id),' Quiero abrir una tumba',Desires):-
+  member(abrirTumba(_),Desires),
+  findall(IdNodo, (has([grave,IdGrave],[gold,_IdGold]), at([grave,IdGrave],IdNodo)), ListaMetas),
+  buscar_plan_desplazamiento(ListaMetas, _Plan, PosDest),
+  at([grave,Id],PosDest).
 
 %_____________________________________________________________________
 %
-% Conseguir un objeto que se halla tirado en el suelo
+% Conseguir un objeto que se haya tirado en el suelo
 %
 % De todos los posibles objetos tirados en el suelo que el agente desea tener,
 % selecciono como intenci�n obtener aquel que se encuentra m�s cerca.
-select_intention(get(Obj), 'es el tesoro m�s cercano de los que deseo obtener', Desires):-
+select_intention(get(Obj), 'es el objeto m�s cercano de los que deseo obtener', Desires):-
 	findall(ObjPos, (member(get(Obj), Desires),
 			 at(Obj, ObjPos)),
 		Metas), % Obtengo posiciones de todos los objetos meta tirados en el suelo.
@@ -339,13 +348,7 @@ select_intention(get(Obj), 'es el tesoro m�s cercano de los que deseo obtener'
 	member(get(Obj), Desires),
         at(Obj, CloserObjPos).
 
-%_____________________________________________________________________
-%
-% Dejar los tesoros en el home
-%
-% Voy a dejar todos mis tesoros en el home
-select_intention(dejarTesoros, ' Voy a dejar todos mis tesoros en el home', Desires):-
-	member(dejarTesoros,Desires).
+
 %select_intention(get([potion,Id]), 'es la posion m�s cercana de las que deseo obtener', Desires):-
 	%findall(ObjPos, (member(get([potion,Id]), Desires),
 		%	 at([potion,Id], ObjPos)),
@@ -521,13 +524,18 @@ planify(rest, Plan):- % Planificaci�n para desplazarse a un destino dado
 
 %Voy a definir las planificaciones de dejar los tesoros en el home
 planify(dejarTesoros,Plan):- %Planificacion para dejar un tesoro en el home
-  at([home,Id],Destino),
-  entity_descr([agent,me],DescripcionAgente),
-  member([home,Id],DescripcionAgente),
-  Plan=[goto(Destino),tirarTodosLosTesoros].
+  at([home,Id],Destino), %Busco la posicion de mi home
+  entity_descr([agent,me],DescripcionAgente), %Necesito la descripcion del agente para saber mi equipo
+  member([home,Id],DescripcionAgente), % Id es mi equipo
+  findall(tirarTesoro(IdTesoro,Destino),has([agent,me],[gold,IdTesoro]),PlanDejarTesoros), %Busco todos mis tesoros y lo guardo en la lista para que los pueda tirar
+  Plan=[goto(Destino)|PlanDejarTesoros]. % Voy hacia mi home y dejo todos mis tesoros
 
-planify(tirarTodosLosTesoros,Plan):-
-  findall(drop([gold,Id]),has([agent,me],[gold,Id]),Plan).
+%Voy a dejar el tesoro especificado en la posicion Destino, si es que yo me encuentro allí
+planify(tirarTesoro(IdTesoro,Destino),Plan):-
+  %at([agent,me],MyPos), write('Mi posicion es '), write(MyPos),nl,
+  write('Pos destino: '),write(Destino),nl,
+  %at([agent,me],Destino), %Me aseguro que me encuentro en la posicion del home
+  Plan=drop([gold,IdTesoro]).
 
 %Abrir tumba
 planify(abrirTumba(IdGrave),Plan):-
