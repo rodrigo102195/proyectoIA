@@ -40,8 +40,6 @@ action(stay, [at([agent, me], Pos), at([inn, _Inn], Pos)], [], []). %'stay' shou
 %Descripcion para drop([type,Id])
 %Precondiciones:
 % 1) Que el agente posea la entidad [type,Id].
-%AddList
-% 1) La entidad se encuentra en la posición del agente.??????????????????????????????
 %DelList
 % 2) La entidad no la tiene el agente.
 action(drop([Type,Id]), [has([agent,me],[Type,Id])], [], [has([agent,me],[Type,Id])]).
@@ -58,12 +56,12 @@ action(get(Obj),[at(Obj,_)], [has([agent,me],Obj)], [at(Obj,_)]).
 
 %Descripcion para abrirTumba
 %Precondiciones:
-% 1) El agente tenga al menos una poción.
+% 1) El agente tenga la poción.
 % 2) La tumba tenga al menos un tesoro.
 %Dellist
 % 1) La tumba no tiene mas tesoros
-% 2) El agente no tiene mas la pocion
-action(abrirTumba(IdGrave),[has([agent,me],[potion,IdPotion]), has([grave,IdGrave],[gold,_])], [], [has([grave,IdGrave],[gold,_]), has([agent,me],[potion,IdPotion])]).
+% 2) El agente no tiene mas la poción
+action(abrirTumba(IdGrave,IdPotion),[has([agent,me],[potion,IdPotion]), has([grave,IdGrave],[gold,_])], [], [has([grave,IdGrave],[gold,_]), has([agent,me],[potion,IdPotion])]).
 
 
 %Descripcion para dejarTesoros
@@ -71,7 +69,7 @@ action(abrirTumba(IdGrave),[has([agent,me],[potion,IdPotion]), has([grave,IdGrav
 % 1) El agente tiene al menos un tesoro
 %DelList
 % 1) El agente no tiene mas tesoros
-%action(dejarTesoros, [has([agent,me],[gold,_])],[],[has([agent,me],[gold,_])]).
+action(dejarTesoros, [has([agent,me],[gold,_])],[],[has([agent,me],[gold,_])]).
 
 %Descripcion para tirarTesoro (IdTesoro, Destino)
 %Precondiciones
@@ -79,7 +77,7 @@ action(abrirTumba(IdGrave),[has([agent,me],[potion,IdPotion]), has([grave,IdGrav
 % 2) El agente se encuentra en la posicion Destino
 %DelList
 % 1) El agente no tiene mas un tesoro con el id IdTesoro
-%action(tirarTesoro(IdTesoro,Destino), [has([agent,me],[gold,IdTesoro]), at([agent,me],Destino)] ,[], [has([agent,me],[gold,IdTesoro])]).
+action(tirarTesoro(IdTesoro,Destino), [has([agent,me],[gold,IdTesoro]), at([agent,me],Destino)] ,[], [has([agent,me],[gold,IdTesoro])]).
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

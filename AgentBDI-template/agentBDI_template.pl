@@ -189,8 +189,8 @@ desire(get([gold, TrName]), 'quiero apoderarme de muchos tesoros!'):-
 % Si recuerdo que un tesoro dado se encuentra en una tumba, tener
 % ese tesoro es una meta.
 
-desire(abrirTumba(IdGrave), 'quiero apoderarme de muchos tesoros!'):-
-  has([grave,IdGrave],[gold,_IdGold]), %Por lo menos exista una tumba con tesoro
+desire(abrirTumbaMasCercana, 'quiero apoderarme de muchos tesoros!'):-
+  has([grave,_IdGrave],[gold,_IdGold]), %Por lo menos exista una tumba con tesoro
   has([agent,me],[potion,_IdPotion]). %Tengas una pocion
 
 
@@ -316,23 +316,24 @@ select_intention(rest, 'voy a recargar antes de encarar otro deseo', Desires):-
 	property([agent, me], life, St),
 	St < 80.
 
-  %_____________________________________________________________________
-  %
-  % Dejar los tesoros en el home
-  %
-  % Voy a dejar todos mis tesoros en el home
-  select_intention(dejarTesoros, ' Voy a dejar todos mis tesoros en el home', Desires):-
-  	member(dejarTesoros,Desires).
+%_____________________________________________________________________
+%
+% Dejar los tesoros en el home
+%
+% Voy a dejar todos mis tesoros en el home
+select_intention(dejarTesoros, ' Voy a dejar todos mis tesoros en el home', Desires):-
+	member(dejarTesoros,Desires),
+  findall(IdTesoro,has([agent,me],[gold,IdTesoro]),ListaTesoros),
+  length(ListaTesoros,Tamanio),
+  Tamanio>4.
 
 %_____________________________________________________________________
 %
-% Abrir la tumba que posee oro
+% Abrir la tumba que posee oro mas cercana
 %
-select_intention(abrirTumba(Id),' Quiero abrir una tumba',Desires):-
-  member(abrirTumba(_),Desires),
-  findall(IdNodo, (has([grave,IdGrave],[gold,_IdGold]), at([grave,IdGrave],IdNodo)), ListaMetas),
-  buscar_plan_desplazamiento(ListaMetas, _Plan, PosDest),
-  at([grave,Id],PosDest).
+select_intention(abrirTumbaMasCercana,' Quiero abrir una tumba',Desires):-
+  member(abrirTumbaMasCercana,Desires).
+
 
 %_____________________________________________________________________
 %
@@ -348,14 +349,13 @@ select_intention(get(Obj), 'es el objeto m�s cercano de los que deseo obtener'
 	member(get(Obj), Desires),
         at(Obj, CloserObjPos).
 
-
-%select_intention(get([potion,Id]), 'es la posion m�s cercana de las que deseo obtener', Desires):-
-	%findall(ObjPos, (member(get([potion,Id]), Desires),
-		%	 at([potion,Id], ObjPos)),
-	%	Metas), % Obtengo posiciones de todos los objetos meta tirados en el suelo.
-	%buscar_plan_desplazamiento(Metas, _Plan, CloserObjPos),
-	%member(get([potion,Id]), Desires),
-  %      at([potion,Id], CloserObjPos).
+%_____________________________________________________________________
+%
+% Dejar los tesoros en el home
+%
+% Voy a dejar todos mis tesoros en el home
+select_intention(dejarTesoros, ' Voy a dejar todos mis tesoros en el home', Desires):-
+	member(dejarTesoros,Desires).
 
 %_____________________________________________________________________
 %
@@ -412,6 +412,15 @@ achieved(get(Obj)):-
 
 achieved(goto(Pos)):-
 	at([agent, me], Pos).
+
+achieved(abrirTumba(IdGrave,_IdPotion)):-
+  not(has([grave,IdGrave],[gold,_])).
+
+achieved(dejarTesoros):-
+  not(has([agent,me],[gold,_])).
+
+achieved(tirarTesoro(IdTesoro,_Destino)):-
+  not(has([agent,me],[gold,IdTesoro])).
 
 
 % << TODO: COMPLETAR DEFINICI�N >>
@@ -532,15 +541,21 @@ planify(dejarTesoros,Plan):- %Planificacion para dejar un tesoro en el home
 
 %Voy a dejar el tesoro especificado en la posicion Destino, si es que yo me encuentro allí
 planify(tirarTesoro(IdTesoro,Destino),Plan):-
-  %at([agent,me],MyPos), write('Mi posicion es '), write(MyPos),nl,
   write('Pos destino: '),write(Destino),nl,
-  %at([agent,me],Destino), %Me aseguro que me encuentro en la posicion del home
-  Plan=drop([gold,IdTesoro]).
+  at([agent,me],Destino), %Me aseguro que me encuentro en la posicion del home
+  Plan=[drop([gold,IdTesoro])].
+
+%Voy a abrir la tumba mas cercana
+planify(abrirTumbaMasCercana,Plan):-
+  has([agent,me],[potion,IdPotion]),
+  findall(IdNodo, (has([grave,IdGrave],[gold,_IdGold]), at([grave,IdGrave],IdNodo)), ListaMetas),
+  buscar_plan_desplazamiento(ListaMetas, _Plan, PosDest),
+  at([grave,Id],PosDest),
+  Plan=[abrirTumba(Id,IdPotion)].
 
 %Abrir tumba
-planify(abrirTumba(IdGrave),Plan):-
+planify(abrirTumba(IdGrave,IdPotion),Plan):-
   at([grave,IdGrave],PosGrave),
-  has([agent,me],[potion,IdPotion]),
   Plan=[goto(PosGrave),cast_spell(open([grave,IdGrave],[potion,IdPotion]))].
 
 % Recorrer mapa desconocido
