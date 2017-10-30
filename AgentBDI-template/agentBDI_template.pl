@@ -416,9 +416,6 @@ achieved(goto(Pos)):-
 achieved(abrirTumba(IdGrave,_IdPotion)):-
   not(has([grave,IdGrave],[gold,_])).
 
-achieved(dejarTesoros):-
-  not(has([agent,me],[gold,_])).
-
 achieved(tirarTesoro(IdTesoro,_Destino)):-
   not(has([agent,me],[gold,IdTesoro])).
 

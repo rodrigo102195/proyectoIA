@@ -64,20 +64,16 @@ action(get(Obj),[at(Obj,_)], [has([agent,me],Obj)], [at(Obj,_)]).
 action(abrirTumba(IdGrave,IdPotion),[has([agent,me],[potion,IdPotion]), has([grave,IdGrave],[gold,_])], [], [has([grave,IdGrave],[gold,_]), has([agent,me],[potion,IdPotion])]).
 
 
-%Descripcion para dejarTesoros
-%Precondiciones:
-% 1) El agente tiene al menos un tesoro
-%DelList
-% 1) El agente no tiene mas tesoros
-action(dejarTesoros, [has([agent,me],[gold,_])],[],[has([agent,me],[gold,_])]).
-
 %Descripcion para tirarTesoro (IdTesoro, Destino)
 %Precondiciones
 % 1) El agente tiene un tesoro con el id IdTesoro
-% 2) El agente se encuentra en la posicion Destino
+% 2) En el destino se encuentra un home
+%AddList
+% 1) El agente se encuentra en la posicion Destino
+% 2) En el home se encuentra ese tesoro
 %DelList
 % 1) El agente no tiene mas un tesoro con el id IdTesoro
-action(tirarTesoro(IdTesoro,Destino), [has([agent,me],[gold,IdTesoro]), at([agent,me],Destino)] ,[], [has([agent,me],[gold,IdTesoro])]).
+action(tirarTesoro(IdTesoro,Destino), [has([agent,me],[gold,IdTesoro]),at([home,IdHome],Destino)] ,[at([agent,me],Destino), has([home,IdHome],[gold,IdTesoro])], [has([agent,me],[gold,IdTesoro])]).
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
