@@ -560,10 +560,9 @@ planify(abrirTumba(IdGrave,IdPotion),Plan):-
 
 % Recorrer mapa desconocido
 planify(recorrer_mapa, Plan):-
-  node(Id, _Vec, Ady),
-  member([IdAdy, _Costo], Ady),
-  not(node(IdAdy, _VecAdy, _Ady)),
-  Plan = [goto(Id)].
+  findall(Id, (node(Id, _Vec, _Ady), es_frontera(Id)), ListaNodos),
+  buscar_plan_desplazamiento(ListaNodos, _Plan, PosDest),
+  Plan = [goto(PosDest)].
 
 planify(stay, [noop , stay]).                     % Planificaci�n recursiva. En este caso permite repetir indefinidamente
                                                   % una acci�n (noop) hasta que la intenci�n de alto nivel corriente
@@ -590,7 +589,7 @@ planify(move_at_random, Plan):- % Planificaci�n para moverse aleatoriamente
 % ACLARACI�N: Puede modificarse la implementaci�n actual de
 % planify/2, si se lo considera apropiado.
 
-
+es_frontera(IdNode):- node(IdNode, _Vec, Ady), member([IdAdy, _Costo], Ady), not(node(IdAdy, _VecAdy, _AdyAdy)), !.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %
