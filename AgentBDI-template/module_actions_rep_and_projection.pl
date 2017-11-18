@@ -51,7 +51,7 @@ action(drop([Type,Id]), [has([agent,me],[Type,Id])], [], [has([agent,me],[Type,I
 % 1) La entidad la posee el agente.
 %DelList:
 % 1) La entidad no se encuentra mas en el suelo.
-action(get(Obj),[at(Obj,PosX)], [has([agent,me],Obj)], [at(Obj,PosX)]).
+%action(get(Obj),[at(Obj,PosX)], [has([agent,me],Obj)], [at(Obj,PosX)]).
 
 
 %Descripcion para abrirTumba(IdGrave)

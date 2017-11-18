@@ -577,13 +577,15 @@ planify(tirarTesoro(IdTesoro,Destino),Plan):-
 planify(saquear_home(IdHome),Plan):-
   at([home,IdHome],PosHome),
   has([agent,me],[potion,IdPotion]),
-  Plan=[goto(PosHome),cast_spell(open([home,IdHome],[potion,IdPotion]))].
+  findall(get(Obj),has([home,IdHome],Obj),AgarrarOros),
+  Plan=[goto(PosHome),cast_spell(open([home,IdHome],[potion,IdPotion])),AgarrarOros].
 
 %Abrir tumba
 planify(abrirTumba(IdGrave),Plan):-
   at([grave,IdGrave],PosGrave),
   has([agent,me],[potion,IdPotion]),
-  Plan=[goto(PosGrave),cast_spell(open([grave,IdGrave],[potion,IdPotion]))].
+  findall(get(Obj),has([grave,IdGrave],Obj),AgarrarOros),
+  Plan=[goto(PosGrave),cast_spell(open([grave,IdGrave],[potion,IdPotion])),AgarrarOros].
 
 % Recorrer mapa desconocido
 planify(recorrer_mapa, Plan):-
