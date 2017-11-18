@@ -189,9 +189,11 @@ desire(get([gold, TrName]), 'quiero apoderarme de muchos tesoros!'):-
 % Si recuerdo que un tesoro dado se encuentra en una tumba, tener
 % ese tesoro es una meta.
 
-desire(abrirTumbaMasCercana, 'quiero apoderarme de muchos tesoros!'):-
-  has([grave,_IdGrave],[gold,_IdGold]), %Por lo menos exista una tumba con tesoro
-  has([agent,me],[potion,_IdPotion]). %Tengas una pocion
+desire(abrirTumba(IdGrave), 'quiero abrir una tumba'):-
+  has([grave,IdGrave],[gold,_]), %Por lo menos exista una tumba con tesoro
+  findall(IdPotion,has([agent,me],[potion,IdPotion]),ListaPociones),
+  length(ListaPociones,Tamanio),
+  Tamanio>1.
 
 
 %_____________________________________________________________________
@@ -206,11 +208,13 @@ desire(get([potion, TrName]), 'quiero apoderarme de muchas pociones!'):-
 
 %_____________________________________________________________________
 %
-% drop treasures at home
+% Dejar los tesoros en el home si es que tengo al menos 3
 
-desire(dejarTesoros, 'Quiero dejar los tesoros en el home!'):-
-  write('Voy a ver lo de dejar los tesoros'),nl,
-  has([agent,me],[gold,_Id]).
+desire(dejarTesoros(Id), 'Quiero dejar los tesoros en el home!'):-
+  at([home,Id],_), %Busco la posicion del home enemigo
+  entity_descr([agent,me],DescripcionAgente), %Necesito la descripcion del agente para saber mi equipo
+  member([home,Id],DescripcionAgente), % Id no es de mi equipo
+  has([agent,me],[gold,_]).
 
 
 
@@ -239,8 +243,17 @@ desire(recorrer_mapa, 'quiero recorrer el mapa').
 
 desire(move_at_random, 'quiero estar siempre en movimiento!').
 
-
-
+%_____________________________________________________________________
+%
+% Saquear home enemigo
+%
+desire(saquear_home(Id), 'Quiero saquear el home enemigo'):-
+  at([home,Id],_Destino), %Busco la posicion del home enemigo
+  entity_descr([agent,me],DescripcionAgente), %Necesito la descripcion del agente para saber mi equipo
+  not(member([home,Id],DescripcionAgente)), % Id no es de mi equipo
+  write('Conozco el home enemigo: '),write(Id),nl,
+  has([agent,me],[potion,_IdPotion]), %Tengo al menos una pocion
+  has([home,Id],[gold,_IdGold]).%El home tiene al menos un tesoro
 % << TODO: DEFINIR OTROS DESEOS >>
 %
 % ACLARACI�N: Pueden modificarse los deseos considerados, y la
@@ -269,7 +282,7 @@ desire(move_at_random, 'quiero estar siempre en movimiento!').
 high_priority(rest, 'necesito descansar'):-  % runs low of stamina
 
 	property([agent, me], life, St),
-	St < 50, % running low of stamina...
+	St < 80, % running low of stamina...
 
 	once(at([inn, _HName], _Pos)). % se conoce al menos una posada
 
@@ -314,25 +327,39 @@ high_priority(rest, 'necesito descansar'):-  % runs low of stamina
 select_intention(rest, 'voy a recargar antes de encarar otro deseo', Desires):-
 	member(rest, Desires),
 	property([agent, me], life, St),
-	St < 80.
+	St < 100.
 
 %_____________________________________________________________________
 %
 % Dejar los tesoros en el home
 %
 % Voy a dejar todos mis tesoros en el home
-select_intention(dejarTesoros, ' Voy a dejar todos mis tesoros en el home', Desires):-
-	member(dejarTesoros,Desires),
+select_intention(dejarTesoros(IdHome), ' Voy a dejar todos mis tesoros en el home', Desires):-
+	member(dejarTesoros(IdHome),Desires),
   findall(IdTesoro,has([agent,me],[gold,IdTesoro]),ListaTesoros),
   length(ListaTesoros,Tamanio),
   Tamanio>4.
+
+select_intention(saquear_home(IdHome),'Voy a saquar el home enemigo',Desires):-
+  member(saquear_home(IdHome),Desires),
+  findall(IdTesoro,has([home,IdHome],[gold,IdTesoro]),ListaTesoros),
+  length(ListaTesoros,CantidadTesoros),
+  CantidadTesoros>3,%La cantidad de tesoros del home enemigo es mayor a cinco
+  findall(IdPotion,has([agent,me],[potion,IdPotion]),ListaPociones),
+  length(ListaPociones,TamanioPociones),
+  TamanioPociones>1.%Yo tengo mas de una pocion
 
 %_____________________________________________________________________
 %
 % Abrir la tumba que posee oro mas cercana
 %
-select_intention(abrirTumbaMasCercana,' Quiero abrir una tumba',Desires):-
-  member(abrirTumbaMasCercana,Desires).
+select_intention(abrirTumba(IdGrave),' Quiero abrir una tumba',Desires):-
+  findall(GrPos,(member(abrirTumba(IdGrave),Desires),
+      at([grave,IdGrave],GrPos)),
+    ListaPosGraves),
+  buscar_plan_desplazamiento(ListaPosGraves,_Plan,CloserGrave),
+  member(abrirTumba(IdGrave),Desires),
+  at([grave,IdGrave],CloserGrave). %En este punto ya se que tengo al menos una pocion por los deseos, por eso no lo chequeo
 
 
 %_____________________________________________________________________
@@ -354,8 +381,8 @@ select_intention(get(Obj), 'es el objeto m�s cercano de los que deseo obtener'
 % Dejar los tesoros en el home
 %
 % Voy a dejar todos mis tesoros en el home
-select_intention(dejarTesoros, ' Voy a dejar todos mis tesoros en el home', Desires):-
-	member(dejarTesoros,Desires).
+select_intention(dejarTesoros(IdHome), ' Voy a dejar todos mis tesoros en el home', Desires):-
+	member(dejarTesoros(IdHome),Desires).
 
 %_____________________________________________________________________
 %
@@ -413,8 +440,15 @@ achieved(get(Obj)):-
 achieved(goto(Pos)):-
 	at([agent, me], Pos).
 
-achieved(abrirTumba(IdGrave,_IdPotion)):-
+achieved(abrirTumba(IdGrave)):-
   not(has([grave,IdGrave],[gold,_])).
+
+achieved(saquear_home(IdHome)):-
+  not(has([home,IdHome],[gold,_IdGold])).
+
+achieved(dejarTesoros(IdHome)):-
+  findall(IdGold,has([agent,me],[gold,IdGold]),ListaTesoros),%De todos los tesoros que yo tengo
+  forall(member(IdGold,ListaTesoros),( not(has([agent,me],[gold,IdGold])) ,has([home,IdHome],[gold,IdGold]) )).%Todos los tesoros que tengo estan en mi home y no los tengo mas
 
 achieved(tirarTesoro(IdTesoro,_Destino)):-
   not(has([agent,me],[gold,IdTesoro])).
@@ -529,10 +563,8 @@ planify(rest, Plan):- % Planificaci�n para desplazarse a un destino dado
 	Plan = [goto(PosH), stay].
 
 %Voy a definir las planificaciones de dejar los tesoros en el home
-planify(dejarTesoros,Plan):- %Planificacion para dejar un tesoro en el home
-  at([home,Id],Destino), %Busco la posicion de mi home
-  entity_descr([agent,me],DescripcionAgente), %Necesito la descripcion del agente para saber mi equipo
-  member([home,Id],DescripcionAgente), % Id es mi equipo
+planify(dejarTesoros(IdHome),Plan):- %Planificacion para dejar un tesoro en el home
+  at([home,IdHome],Destino), %Busco la posicion de mi home
   findall(tirarTesoro(IdTesoro,Destino),has([agent,me],[gold,IdTesoro]),PlanDejarTesoros), %Busco todos mis tesoros y lo guardo en la lista para que los pueda tirar
   Plan=[goto(Destino)|PlanDejarTesoros]. % Voy hacia mi home y dejo todos mis tesoros
 
@@ -541,17 +573,16 @@ planify(tirarTesoro(IdTesoro,Destino),Plan):-
   at([agent,me],Destino), %Me aseguro que me encuentro en la posicion del home
   Plan=[drop([gold,IdTesoro])].
 
-%Voy a abrir la tumba mas cercana
-planify(abrirTumbaMasCercana,Plan):-
+%Saquear Home enemigo
+planify(saquear_home(IdHome),Plan):-
+  at([home,IdHome],PosHome),
   has([agent,me],[potion,IdPotion]),
-  findall(IdNodo, (has([grave,IdGrave],[gold,_IdGold]), at([grave,IdGrave],IdNodo)), ListaMetas),
-  buscar_plan_desplazamiento(ListaMetas, _Plan, PosDest),
-  at([grave,Id],PosDest),
-  Plan=[abrirTumba(Id,IdPotion)].
+  Plan=[goto(PosHome),cast_spell(open([home,IdHome],[potion,IdPotion]))].
 
 %Abrir tumba
-planify(abrirTumba(IdGrave,IdPotion),Plan):-
+planify(abrirTumba(IdGrave),Plan):-
   at([grave,IdGrave],PosGrave),
+  has([agent,me],[potion,IdPotion]),
   Plan=[goto(PosGrave),cast_spell(open([grave,IdGrave],[potion,IdPotion]))].
 
 % Recorrer mapa desconocido

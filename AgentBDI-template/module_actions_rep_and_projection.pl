@@ -51,18 +51,29 @@ action(drop([Type,Id]), [has([agent,me],[Type,Id])], [], [has([agent,me],[Type,I
 % 1) La entidad la posee el agente.
 %DelList:
 % 1) La entidad no se encuentra mas en el suelo.
-%action(get(Obj),[at(Obj,_)], [has([agent,me],Obj)], [at(Obj,_)]).
+action(get(Obj),[at(Obj,PosX)], [has([agent,me],Obj)], [at(Obj,PosX)]).
 
 
-%Descripcion para abrirTumba
+%Descripcion para abrirTumba(IdGrave)
 %Precondiciones:
-% 1) El agente tenga la poción.
-% 2) La tumba tenga al menos un tesoro.
+% 1) La tumba tenga al menos un tesoro.
 %Dellist
 % 1) La tumba no tiene mas tesoros
-% 2) El agente no tiene mas la poción
-action(abrirTumba(IdGrave,IdPotion),[has([agent,me],[potion,IdPotion]), has([grave,IdGrave],[gold,_])], [], [has([grave,IdGrave],[gold,_]), has([agent,me],[potion,IdPotion])]).
+action(abrirTumba(IdGrave),[has([grave,IdGrave],[gold,_])], [], [has([grave,IdGrave],[gold,_])]).
 
+%Descripcion para saquear_home(IdHome)
+%Precondicones:
+% 1) El home tiene al menos un tesoros
+%Dellist
+% 1) El home no tiene ListaTesoros
+action(saquear_home(IdHome),[has([home,IdHome],[[gold,_IdGold]])],[],[has([home,IdHome],[gold,_IdGold2])]).
+
+%Descripcion para dejarTesoros(IdHome)
+%Precondiciones
+%1) El agente tenga al menos un tesoros
+%Dellist
+%1) El agente no tiene mas tesoros
+action(dejarTesoros(_IdHome),[has([agent,me],[gold,_IdGold])],[],[has([agent,me],[gold,_IdGold2])]).
 
 %Descripcion para tirarTesoro (IdTesoro, Destino)
 %Precondiciones
