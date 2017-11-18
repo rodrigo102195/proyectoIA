@@ -77,6 +77,7 @@ generar_nuevos_caminos(Visitados, path(CostoActual,[HeaderActual|RestoActual]), 
 	node(HeaderActual, _Vec, Ady),
 	findall(path(CostoActual,[NuevoHeader,HeaderActual|RestoActual]),
 	(member([NuevoHeader,_CostoAdy], Ady),
+	node(NuevoHeader,_VecAdy,_AdyAdy),%Es para no agreagar los adyacentes desconocidos
 	not(member(NuevoHeader, Visitados))), % Control de visitados
 	ListaNueva),
 	cambiar_costos(ListaNueva, NuevosCaminos, Ady).
