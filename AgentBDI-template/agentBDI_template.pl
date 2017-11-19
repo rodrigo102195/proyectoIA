@@ -211,10 +211,13 @@ desire(get([potion, TrName]), 'quiero apoderarme de muchas pociones!'):-
 % Dejar los tesoros en el home si es que tengo al menos 3
 
 desire(dejarTesoros(Id), 'Quiero dejar los tesoros en el home!'):-
-  at([home,Id],_), %Busco la posicion del home enemigo
+   %Busco la posicion de mi home
   entity_descr([agent,me],DescripcionAgente), %Necesito la descripcion del agente para saber mi equipo
+  write('DOS'),
   member([home,Id],DescripcionAgente), % Id no es de mi equipo
-  has([agent,me],[gold,_]).
+  write('TRES'),
+  has([agent,me],[gold,_IdGold]),
+  write('CUATRO').
 
 
 
@@ -248,10 +251,10 @@ desire(move_at_random, 'quiero estar siempre en movimiento!').
 % Saquear home enemigo
 %
 desire(saquear_home(Id), 'Quiero saquear el home enemigo'):-
-  at([home,Id],_Destino), %Busco la posicion del home enemigo
   entity_descr([agent,me],DescripcionAgente), %Necesito la descripcion del agente para saber mi equipo
-  not(member([home,Id],DescripcionAgente)), % Id no es de mi equipo
-  write('Conozco el home enemigo: '),write(Id),nl,
+  member([home,IdMiHome],DescripcionAgente),
+  at([home,Id],_Destino), %Busco la posicion del home enemigo
+  not(IdMiHome=Id),
   has([agent,me],[potion,_IdPotion]), %Tengo al menos una pocion
   has([home,Id],[gold,_IdGold]).%El home tiene al menos un tesoro
 % << TODO: DEFINIR OTROS DESEOS >>
@@ -639,15 +642,19 @@ achieved(get(Obj)):-
 achieved(goto(Pos)):-
 	at([agent, me], Pos).
 
-achieved(abrirTumba(IdGrave)):-
-  not(has([grave,IdGrave],[gold,_])).
+%achieved(abrirTumba(IdGrave)):-
+%  not(has([grave,IdGrave],[gold,_])),
+%  findall(IdTesoro,has([grave,IdGrave],[gold,IdTesoro]),ListaTesoros),
+%  forall(member(IdT,ListaTesoros),has([agent,me],[gold,IdT])).
 
-achieved(saquear_home(IdHome)):-
-  not(has([home,IdHome],[gold,_IdGold])).
+%achieved(saquear_home(IdHome)):-
+%  not(has([home,IdHome],[gold,_IdGold])),
+%  findall(IdTesoro,has([home,IdHome],[gold,IdTesoro]),ListaTesoros),
+%  forall(member(IdT,ListaTesoros),has([agent,me],[gold,IdT])).
 
-achieved(dejarTesoros(IdHome)):-
-  findall(IdGold,has([agent,me],[gold,IdGold]),ListaTesoros),%De todos los tesoros que yo tengo
-  forall(member(IdGold,ListaTesoros),( not(has([agent,me],[gold,IdGold])) ,has([home,IdHome],[gold,IdGold]) )).%Todos los tesoros que tengo estan en mi home y no los tengo mas
+%achieved(dejarTesoros(IdHome)):-
+%  findall(IdGold,has([agent,me],[gold,IdGold]),ListaTesoros),%De todos los tesoros que yo tengo
+%  forall(member(IdGold,ListaTesoros),( not(has([agent,me],[gold,IdGold])) ,has([home,IdHome],[gold,IdGold]) )).%Todos los tesoros que tengo estan en mi home y no los tengo mas
 
 achieved(tirarTesoro(IdTesoro,_Destino)):-
   not(has([agent,me],[gold,IdTesoro])).
@@ -777,14 +784,16 @@ planify(saquear_home(IdHome),Plan):-
   at([home,IdHome],PosHome),
   has([agent,me],[potion,IdPotion]),
   findall(get(Obj),has([home,IdHome],Obj),AgarrarOros),
-  Plan=[goto(PosHome),cast_spell(open([home,IdHome],[potion,IdPotion])),AgarrarOros].
+  PlanIntermedio=[goto(PosHome),cast_spell(open([home,IdHome],[potion,IdPotion]))],
+  append(PlanIntermedio,AgarrarOros,Plan).
 
 %Abrir tumba
 planify(abrirTumba(IdGrave),Plan):-
   at([grave,IdGrave],PosGrave),
   has([agent,me],[potion,IdPotion]),
   findall(get(Obj),has([grave,IdGrave],Obj),AgarrarOros),
-  Plan=[goto(PosGrave),cast_spell(open([grave,IdGrave],[potion,IdPotion])),AgarrarOros].
+  PlanIntermedio=[goto(PosGrave),cast_spell(open([grave,IdGrave],[potion,IdPotion]))],
+  append(PlanIntermedio,AgarrarOros,Plan).
 
 % Acercarse al enemigo
 planify(approach_enemy(Target), Plan):-
@@ -793,12 +802,15 @@ planify(approach_enemy(Target), Plan):-
 
 % Atacar enemigo
 planify(basic_attack_enemy(Target), Plan):-
-  Plan = [attack([agent, Target])].
+  findall(get(Obj),has([agent,Target],Obj),GetList),
+  Plan = [attack([agent, Target])|GetList].%Si no lo mató entonces el plan de los get falla, sino lo levanta todo
 
 % Dormir enemigo
 planify(put_to_sleep_enemy(Target), Plan):-
   has([agent, me], [potion, PotionToUse]),
-  Plan = [cast_spell(sleep([agent, Target], [potion, PotionToUse]))].
+  findall(get(Obj),has([agent,Target],Obj),GetList),
+  PlanIntermedio = [cast_spell(sleep([agent, Target], [potion, PotionToUse]))],
+  append(PlanIntermedio,GetList,Plan).
 
 % Recorrer mapa desconocido
 planify(recorrer_mapa, Plan):-
