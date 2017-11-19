@@ -286,13 +286,212 @@ high_priority(rest, 'necesito descansar'):-  % runs low of stamina
 
 	once(at([inn, _HName], _Pos)). % se conoce al menos una posada
 
+% Tener mas hp y mas xp que el enemigo, el enemigo esta cerca de mi home
+high_priority(basic_attack_enemy(Target), 'es conveniente atacar al enemigo'):-
+  property([agent, me], home, MyColor),
+  atPos([agent, me], MyPos),
+  atPos([agent, Target], TPos),
+  pos_in_attack_range(MyPos, TPos), % Estar en rango de ataque
+  atPos([home, MyColor], HomePos),
+  pos_in_attack_range(TPos, HomePos), % El enemigo esta cerca de mi home
+  property([agent, Target], home, TColor),
+  MyColor \= TColor, % Ser de distintos equipos
+  property([agent, me], life, MyLife),
+  property([agent, Target], life, TLife),
+  TLife > 0, % El enemigo tiene vida
+  MyLife > TLife, % Tener mas hp que el enemigo
+  property([agent, me], skill, MySkill),
+  property([agent, Target], skill, TSkill),
+  MySkill > TSkill. % Tener mas xp que el enemigo
+
+% Tener mas de 100 hp mas que el enemigo, el enemigo esta cerca de mi home
+high_priority(basic_attack_enemy(Target), 'es conveniente atacar al enemigo'):-
+  property([agent, me], home, MyColor),
+  atPos([agent, me], MyPos),
+  atPos([agent, Target], TPos),
+  pos_in_attack_range(MyPos, TPos), % Estar en rango de ataque
+  atPos([home, MyColor], HomePos),
+  pos_in_attack_range(TPos, HomePos), % El enemigo esta cerca de mi home
+  property([agent, Target], home, TColor),
+  MyColor \= TColor, % Ser de distintos equipos
+  property([agent, me], life, MyLife),
+  property([agent, Target], life, TLife),
+  TLife > 0, % El enemigo tiene vida
+  TLifePlus is TLife + 100,
+  MyLife > TLifePlus. % Tener mas de 100 hp mas que el enemigo
+
+% Tener al menos 1 potion, el enemigo esta cerca de mi home
+high_priority(put_to_sleep_enemy(Target), 'es conveniente dormir al enemigo'):-
+  property([agent, me], home, MyColor),
+  atPos([agent, me], MyPos),
+  atPos([agent, Target], TPos),
+  pos_in_attack_range(MyPos, TPos), % Estar en rango de ataque
+  atPos([home, MyColor], HomePos),
+  pos_in_attack_range(TPos, HomePos), % El enemigo esta cerca de mi home
+  property([agent, Target], home, TColor),
+  MyColor \= TColor, % Ser de distintos equipos
+  property([agent, Target], life, TLife),
+  TLife > 0, % El enemigo tiene vida
+  has([agent, me], [potion, _AnyPotion]). % Tener al menos 1 potion
+
+% El enemigo esta cerca de mi home
+high_priority(basic_attack_enemy(Target), 'es conveniente atacar al enemigo'):-
+  property([agent, me], home, MyColor),
+  atPos([agent, me], MyPos),
+  atPos([agent, Target], TPos),
+  pos_in_attack_range(MyPos, TPos), % Estar en rango de ataque
+  atPos([home, MyColor], HomePos),
+  pos_in_attack_range(TPos, HomePos), % El enemigo esta cerca de mi home
+  property([agent, Target], home, TColor),
+  MyColor \= TColor, % Ser de distintos equipos
+  property([agent, Target], life, TLife),
+  TLife > 0. % El enemigo tiene vida
+
+% Tener mas hp y mas xp que el enemigo, el enemigo tiene mas de 3 gold
+high_priority(basic_attack_enemy(Target), 'es conveniente atacar al enemigo'):-
+  atPos([agent, me], MyPos),
+  atPos([agent, Target], TPos),
+  pos_in_attack_range(MyPos, TPos), % Estar en rango de ataque
+  property([agent, me], home, MyColor),
+  property([agent, Target], home, TColor),
+  MyColor \= TColor, % Ser de distintos equipos
+  property([agent, me], life, MyLife),
+  property([agent, Target], life, TLife),
+  TLife > 0, % El enemigo tiene vida
+  MyLife > TLife, % Tener mas hp que el enemigo
+  property([agent, me], skill, MySkill),
+  property([agent, Target], skill, TSkill),
+  MySkill > TSkill, % Tener mas xp que el enemigo
+  findall(TGold, has([agent, Target], [gold, TGold]), TGList),
+  length(TGList, Num),
+  Num > 3. % El enemigo tiene mas de 3 gold
+
+% Tener mas de 100 hp mas que el enemigo, el enemigo tiene mas de 3 gold
+high_priority(basic_attack_enemy(Target), 'es conveniente atacar al enemigo'):-
+  atPos([agent, me], MyPos),
+  atPos([agent, Target], TPos),
+  pos_in_attack_range(MyPos, TPos), % Estar en rango de ataque
+  property([agent, me], home, MyColor),
+  property([agent, Target], home, TColor),
+  MyColor \= TColor, % Ser de distintos equipos
+  property([agent, me], life, MyLife),
+  property([agent, Target], life, TLife),
+  TLife > 0, % El enemigo tiene vida
+  TLifePlus is TLife + 100,
+  MyLife > TLifePlus, % Tener mas de 100 hp mas que el enemigo
+  findall(TGold, has([agent, Target], [gold, TGold]), TGList),
+  length(TGList, Num),
+  Num > 3. % El enemigo tiene mas de 3 gold
+
+% Tener al menos 1 potion, el enemigo tiene mas de 3 gold
+high_priority(put_to_sleep_enemy(Target), 'es conveniente dormir al enemigo'):-
+  atPos([agent, me], MyPos),
+  atPos([agent, Target], TPos),
+  pos_in_attack_range(MyPos, TPos), % Estar en rango de ataque
+  property([agent, me], home, MyColor),
+  property([agent, Target], home, TColor),
+  MyColor \= TColor, % Ser de distintos equipos
+  property([agent, Target], life, TLife),
+  TLife > 0, % El enemigo tiene vida
+  has([agent, me], [potion, _AnyPotion]), % Tener al menos 1 potion
+  findall(TGold, has([agent, Target], [gold, TGold]), TGList),
+  length(TGList, Num),
+  Num > 3. % El enemigo tiene mas de 3 gold
+
+% Tener al menos 1 potion, el enemigo tiene al menos 1 gold y 1 potion
+high_priority(put_to_sleep_enemy(Target), 'es conveniente dormir al enemigo'):-
+  atPos([agent, me], MyPos),
+  atPos([agent, Target], TPos),
+  pos_in_attack_range(MyPos, TPos), % Estar en rango de ataque
+  property([agent, me], home, MyColor),
+  property([agent, Target], home, TColor),
+  MyColor \= TColor, % Ser de distintos equipos
+  property([agent, Target], life, TLife),
+  TLife > 0, % El enemigo tiene vida
+  has([agent, me], [potion, _AnyPotion]), % Tener al menos 1 potion
+  has([agent, Target], [potion, _TargetPotion]), % El enemigo tiene al menos 1 potion
+  has([agent, Target], [gold, _TargetGold]). % El enemigo tiene al menos 1 gold
+
+% Acercarse al enemigo
+high_priority(approach_enemy(Target), 'es conveniente acercarse al enemigo'):-
+  at([agent, Target], _),
+  time(CurrentTime),
+  lastSeen(Target, CurrentTime), % La ultima vez visto es ahora
+  property([agent, me], home, MyColor),
+  property([agent, Target], home, TColor),
+  MyColor \= TColor, % Ser de distintos equipos
+  check_approach_conditions(Target).
 
 % << TODO: DEFINIR >>
 %
 % ACLARACI�N: Puede modificarse la implementaci�n actual de
 % high_priority/2, si se lo considera apropiado.
 
+check_approach_conditions(Target):-
+  property([agent, me], home, MyColor),
+  atPos([agent, Target], TPos),
+  atPos([home, MyColor], HomePos),
+  pos_in_attack_range(TPos, HomePos), % El enemigo esta cerca de mi home
+  property([agent, Target], home, TColor),
+  MyColor \= TColor, % Ser de distintos equipos
+  property([agent, Target], life, TLife),
+  TLife > 0. % El enemigo tiene vida
 
+check_approach_conditions(Target):-
+  at([agent, Target], _),
+  property([agent, me], home, MyColor),
+  property([agent, Target], home, TColor),
+  MyColor \= TColor, % Ser de distintos equipos
+  property([agent, me], life, MyLife),
+  property([agent, Target], life, TLife),
+  TLife > 0, % El enemigo tiene vida
+  MyLife > TLife, % Tener mas hp que el enemigo
+  property([agent, me], skill, MySkill),
+  property([agent, Target], skill, TSkill),
+  MySkill > TSkill, % Tener mas xp que el enemigo
+  findall(TGold, has([agent, Target], [gold, TGold]), TGList),
+  length(TGList, Num),
+  Num > 3. % El enemigo tiene mas de 3 gold
+
+check_approach_conditions(Target):-
+  at([agent, Target], _),
+  property([agent, me], home, MyColor),
+  property([agent, Target], home, TColor),
+  MyColor \= TColor, % Ser de distintos equipos
+  property([agent, me], life, MyLife),
+  property([agent, Target], life, TLife),
+  TLife > 0, % El enemigo tiene vida
+  TLifePlus is TLife + 100,
+  MyLife > TLifePlus, % Tener mas de 100 hp mas que el enemigo
+  property([agent, me], skill, MySkill),
+  property([agent, Target], skill, TSkill),
+  MySkill > TSkill, % Tener mas xp que el enemigo
+  findall(TGold, has([agent, Target], [gold, TGold]), TGList),
+  length(TGList, Num),
+  Num > 3. % El enemigo tiene mas de 3 gold
+
+check_approach_conditions(Target):-
+  at([agent, Target], _),
+  property([agent, me], home, MyColor),
+  property([agent, Target], home, TColor),
+  MyColor \= TColor, % Ser de distintos equipos
+  property([agent, Target], life, TLife),
+  TLife > 0, % El enemigo tiene vida
+  has([agent, me], [potion, _AnyPotion]), % Tener al menos 1 potion
+  findall(TGold, has([agent, Target], [gold, TGold]), TGList),
+  length(TGList, Num),
+  Num > 3. % El enemigo tiene mas de 3 gold
+
+check_approach_conditions(Target):-
+  at([agent, Target], _),
+  property([agent, me], home, MyColor),
+  property([agent, Target], home, TColor),
+  MyColor \= TColor, % Ser de distintos equipos
+  property([agent, Target], life, TLife),
+  TLife > 0, % El enemigo tiene vida
+  has([agent, me], [potion, _AnyPotion]), % Tener al menos 1 potion
+  has([agent, Target], [potion, _TargetPotion]), % El enemigo tiene al menos 1 potion
+  has([agent, Target], [gold, _TargetGold]). % El enemigo tiene al menos 1 gold
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%                             %%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -586,6 +785,20 @@ planify(abrirTumba(IdGrave),Plan):-
   has([agent,me],[potion,IdPotion]),
   findall(get(Obj),has([grave,IdGrave],Obj),AgarrarOros),
   Plan=[goto(PosGrave),cast_spell(open([grave,IdGrave],[potion,IdPotion])),AgarrarOros].
+
+% Acercarse al enemigo
+planify(approach_enemy(Target), Plan):-
+  at([agent, Target], Pos),
+  Plan = [goto(Pos)].
+
+% Atacar enemigo
+planify(basic_attack_enemy(Target), Plan):-
+  Plan = [attack([agent, Target])].
+
+% Dormir enemigo
+planify(put_to_sleep_enemy(Target), Plan):-
+  has([agent, me], [potion, PotionToUse]),
+  Plan = [cast_spell(sleep([agent, Target], [potion, PotionToUse]))].
 
 % Recorrer mapa desconocido
 planify(recorrer_mapa, Plan):-

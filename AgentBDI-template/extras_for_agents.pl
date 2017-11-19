@@ -20,7 +20,7 @@
 %
 % display_ag
 %
-% Muestra por consola cierta información básica relevante del agente en
+% Muestra por consola cierta informaciï¿½n bï¿½sica relevante del agente en
 % el turno corriente.
 
 display_ag:-
@@ -55,7 +55,9 @@ display_ag.
 display_entity(Entity):-
 	at(Entity, Pos),
 	atPos(Entity, Vector),
-	write(' '), write(Entity), write(' at '), write(Pos), write(' ('), write(Vector), write(')'), write('.'),
+	atPos([_,EntId], Vector),
+	lastSeen(EntId, Time),
+	write(' '), write(Entity), write(' at '), write(Pos), write(' ('), write(Vector), write(')'), write(' last seen '), write(Time), write('.'),
 	implies(Entity = [agent, _], nl),
 	entity_descr(Entity, Descr),
 	write('  Descr: '), write(Descr), write('.'),
@@ -74,9 +76,9 @@ display_entity(Entity):-
 %
 % pos_in_attack_range(+AgPos, +AgDir, -PosInAttackRange)
 %
-% Retorna una posición PosInAttackRange dentro del rango de ataque de
-% un agente que se encuentra en la posición AgPos, mirando en
-% dirección AgDir.
+% Retorna una posiciï¿½n PosInAttackRange dentro del rango de ataque de
+% un agente que se encuentra en la posiciï¿½n AgPos, mirando en
+% direcciï¿½n AgDir.
 
 pos_in_attack_range(MyPos, TargetPos):-
 	distance(MyPos, TargetPos, Distance),
@@ -96,7 +98,7 @@ distance(vector(X1, Y1, Z1), vector(X2, Y2, Z2), Distance):-
 %
 % ady(?Pos, ?AdyPos)
 %
-% Tiene éxito si AdyPos es una posición adyacente a Pos.
+% Tiene ï¿½xito si AdyPos es una posiciï¿½n adyacente a Pos.
 
 ady(NodeX, NodeY):- node(NodeX, _, AdyList), member([NodeY,_], AdyList).
 
@@ -108,7 +110,7 @@ ady(NodeX, NodeY, Cost):- node(NodeX, _, AdyList), member([NodeY, Cost], AdyList
 % is_a_direct(?SubType, ?SuperType)
 %
 % Type inheritance hierarchy
-% Establece relación directa de subtipo (mismo significado que
+% Establece relaciï¿½n directa de subtipo (mismo significado que
 % "extends" de JAVA)
 
 is_a_direct(dragon, agent).
@@ -130,7 +132,7 @@ is_a_direct(sleep_potion, potion).
 %
 % is_a(?SubType, ?SuperType)
 %
-% Relación de subtipo (clausura transitiva de is_a_direct).
+% Relaciï¿½n de subtipo (clausura transitiva de is_a_direct).
 
 is_a(Type, Type).
 
@@ -157,10 +159,10 @@ property(Thing, Prop, Value):-
 %
 % Actualiza la propiedad Prop de la entidad Entity. CurrValue se liga
 % con el valor actual de la propiedad, NewValue con el nuevo valor que
-% se desea que tenga, y Where (de uso opcional) establece la relación
+% se desea que tenga, y Where (de uso opcional) establece la relaciï¿½n
 % entre el valor actual, CurrValue, y el nuevo valor, NewValue.
 %
-% ACLARACIÓN: la meta Where no debe fallar.
+% ACLARACIï¿½N: la meta Where no debe fallar.
 %
 % ej:
 %update(Ag, stamina, CurrValue, NewValue, NewValue is CurrValue + 1)
@@ -171,7 +173,7 @@ property(Thing, Prop, Value):-
 update_prop(Thing, Prop, CurrValue, NewValue, Where):-
 		entity_descr(Thing, Descr),
 	        replace([Prop, CurrValue], [Prop, NewValue], Descr, NewDescr),
-		call(Where), % Cuidado!!! Debería asegurarme que el where no falle!
+		call(Where), % Cuidado!!! Deberï¿½a asegurarme que el where no falle!
                 retract(entity_descr(Thing, Descr)),
 	        assert(entity_descr(Thing, NewDescr)).
 
@@ -183,7 +185,7 @@ update_prop(Thing, Prop, CurrValue, NewValue, Where):-
 %
 % random_member(-Elem, +List)
 %
-% Versión random del predicado member/2. Dada una lista List
+% Versiï¿½n random del predicado member/2. Dada una lista List
 % retorna un elemento Elem de List aleatoriamente. Frente al pedido
 % de soluciones alternativas va retornando uno a uno los elementos
 % de List en forma aleatoria, y sin repetirlos.
@@ -217,7 +219,7 @@ remove_nth(N, [Y|Ys], X, [Y|Xs]):-
 %
 % next(?N, ?Nn)
 %
-% Tiene éxito si Nn es el sucesor de N. Admite que o bien N o Nn
+% Tiene ï¿½xito si Nn es el sucesor de N. Admite que o bien N o Nn
 % vengan sin instanciar (pero no ambos).
 
 
@@ -287,7 +289,7 @@ last_element(X, [_Y|Ys]):-
 %
 % implies(+Ant, +Cons)
 %
-% Tiene éxito si no se satisface Ant, o se satisfacen tanto Ant como
+% Tiene ï¿½xito si no se satisface Ant, o se satisfacen tanto Ant como
 % Cons.
 
 
@@ -295,24 +297,3 @@ implies(Ant, Cons):- call(Ant), !,
                      call(Cons).
 
 implies(_Ant, _Cons).
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
