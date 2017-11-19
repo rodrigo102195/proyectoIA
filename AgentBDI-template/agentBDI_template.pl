@@ -1020,7 +1020,7 @@ feasible(Plan):-
 % Solicita la registraci�n al juego, y recuerda su nombre.
 
 
-start_ag:- AgName = agentBDI,
+start_ag:- AgName = painkiller,
            agent_init(AgName),
            assert(ag_name(AgName)),
 	   agent_reset,
@@ -1042,7 +1042,7 @@ s:- start_ag.
 
 
 start_ag_instance(InstanceID):-
-                    AgClassName = agentBDI,
+                    AgClassName = painkiller,
                     AgInstanceName =.. [AgClassName, InstanceID],
 		    agent_init(AgInstanceName),
 		    assert(ag_name(AgInstanceName)),

@@ -46,8 +46,8 @@ display_ag:-
 
 	nl, nl,
 
-        writeln('I remember: ').
-	%forall(at(Entity, _Pos), display_entity(Entity)).
+        writeln('I remember: '),
+	forall(at(Entity, _Pos), display_entity(Entity)).
 	%forall(has(_, Entity), display_entity(Entity)).
 
 display_ag.
