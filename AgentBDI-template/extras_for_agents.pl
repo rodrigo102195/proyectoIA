@@ -1,5 +1,7 @@
 % Predicados auxiliares
 
+:- encoding('iso_latin_1').
+
 :- module(extras_for_agents,
 	  [
 	    display_ag/0,

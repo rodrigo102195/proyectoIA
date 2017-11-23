@@ -1,3 +1,5 @@
+:- encoding('iso_latin_1').
+
 :- module(actions_rep_and_projection,
 	  [
 	    dynamic_state_rels/1,

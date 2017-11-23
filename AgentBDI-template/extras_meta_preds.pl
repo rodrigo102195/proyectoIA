@@ -1,6 +1,6 @@
 % Meta - Predicados auxiliares
 
-
+:- encoding('iso_latin_1').
 
 
 
@@ -28,7 +28,7 @@ dont_fail(_).
 %
 % implies(+Ant, +Cons)
 %
-% Tiene éxito si no se satisface Ant, o se satisfacen tanto Ant como
+% Tiene ï¿½xito si no se satisface Ant, o se satisfacen tanto Ant como
 % Cons.
 
 
@@ -43,16 +43,3 @@ throw_exception(CallBeforeBreak):-
 	write('EXCEPTION: '),
 	dont_fail(CallBeforeBreak),
 	break.
-
-
-
-
-
-
-
-
-
-
-
-
-

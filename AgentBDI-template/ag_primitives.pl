@@ -1,6 +1,7 @@
 %% Agent-Environment interaction primitives
 % Agent-primitives for interaction with the environment
 
+:- encoding('iso_latin_1').
 
 :- module(ag_primitives,
 	  [
@@ -222,15 +223,3 @@ hasInBackpack(AgId, [E|Es], [has(AgId, EntityId), entity_descr(EntityId, Propert
 extractHas(EntityId, Properties, Has, RemainingProperties):-
 	delete_if_exists([has, PropHas], Properties, RemainingProperties),!,
 	hasInBackpack(EntityId, PropHas, Has).
-
-
-
-
-
-
-
-
-
-
-
-

@@ -1,5 +1,6 @@
 % Uncomment the last line of this file to disable writes.
 
+:- encoding('iso_latin_1').
 
 :- dynamic writes_disabled/0.
 
@@ -20,13 +21,3 @@ disable_writes:-
 	assert(writes_disabled).
 
 %:- disable_writes.
-
-
-
-
-
-
-
-
-
-

@@ -1,3 +1,5 @@
+:- encoding('iso_latin_1').
+
 :- module(path_finding,
 	  [
 	    buscar_plan_desplazamiento/3

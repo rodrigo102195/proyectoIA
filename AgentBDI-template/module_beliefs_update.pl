@@ -1,3 +1,5 @@
+:- encoding('iso_latin_1').
+
 :- module(beliefs_update,
 	  [
 	    update_beliefs/1,

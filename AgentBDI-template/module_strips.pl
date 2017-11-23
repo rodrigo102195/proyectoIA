@@ -1,3 +1,5 @@
+:- encoding('iso_latin_1').
+
 :- module(strips,
 	  [
 	    strips/2
@@ -9,16 +11,16 @@
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %
-% Esta implementación corresponde a la estrategia de planificación STRIPS básica,
+% Esta implementaciï¿½n corresponde a la estrategia de planificaciï¿½n STRIPS bï¿½sica,
 % es decir, sin los refinamientos "proteger y reordenar" ni "realcanzar".
 % Luego resulta fundamental, al especificar las acciones (en
 % module_actions_rep_and_projection), ordenar sensiblemente las
 % precondiciones para evitar la necesidad de reordenamientos en la
-% planifiación.
+% planifiaciï¿½n.
 %
-% Aclaración: las metas alcanzadas se protegen con el propósito de
+% Aclaraciï¿½n: las metas alcanzadas se protegen con el propï¿½sito de
 % provocar la falla del planificador ante un intento de deshacerlas
-% (lo que conduciría a un plan inválido en caso de no controlarse).
+% (lo que conducirï¿½a a un plan invï¿½lido en caso de no controlarse).
 
 
 last_action(none).
@@ -29,12 +31,12 @@ last_action(none).
 % strips(+Metas, -Plan)
 %
 %
-% Predicado implementando el algoritmo de planificación STRIPS.
-% Versión exportada.
+% Predicado implementando el algoritmo de planificaciï¿½n STRIPS.
+% Versiï¿½n exportada.
 
 
 strips(Metas, Plan):-
-	dynamic_state_rels(EInicial), % Obtener la lista Init de creencias relevantes a la planificación.
+	dynamic_state_rels(EInicial), % Obtener la lista Init de creencias relevantes a la planificaciï¿½n.
 	strips(Metas, EInicial, Plan).
 
 
@@ -42,14 +44,14 @@ strips(Metas, Plan):-
 %
 % strips(+Metas, +Estado_Inicial, -Plan)
 %
-% Predicado implementando el algoritmo de planificación STRIPS.
-% Versión oculta, en la que se basa la versión exportada.
+% Predicado implementando el algoritmo de planificaciï¿½n STRIPS.
+% Versiï¿½n oculta, en la que se basa la versiï¿½n exportada.
 % Recibe como argumento el estado inicial, codificado como una lista
-% de relaciones dinámicas primitivas válidas en el estado.
+% de relaciones dinï¿½micas primitivas vï¿½lidas en el estado.
 
 strips(Metas, EInicial, Plan):-
               alcanzar_todas(Metas, EInicial, [], [], Plan, _),
-	      !. % Para forzar una única solución
+	      !. % Para forzar una ï¿½nica soluciï¿½n
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %
@@ -72,9 +74,9 @@ alcanzar_todas(Metas, EActual, Prot, ActionsHeap, Plan, ELuegoPlan):-
 % alcanzar(+Meta, +EActual, +Protegidas, +ActionsHeap, -PlanMeta, -NuevoEActual)
 %
 % ActionsHeap permite llevar cuenta de la pila de acciones seleccionadas
-% previamente y cuyas precondiciones están pendientes de ser logradas.
-% Se emplea para controlar que la acción seleccionada en este paso no
-% pertenezca a la pila, en cuyo caso se estaría entrando en un
+% previamente y cuyas precondiciones estï¿½n pendientes de ser logradas.
+% Se emplea para controlar que la acciï¿½n seleccionada en este paso no
+% pertenezca a la pila, en cuyo caso se estarï¿½a entrando en un
 % ciclo.
 
 alcanzar(Meta, EActual, _Prot, _ActionsHeap, [], EActual):-
@@ -88,7 +90,7 @@ alcanzar(Meta, EActual, Prot, ActionsHeap, PlanMeta, ELuegoPlanMeta):-
 	       Accion = [NomAcc, Pre, _Add, _Del],
 	       not(member(NomAcc, ActionsHeap)),
                not((member(MetaProt, Prot), deshace(Accion, MetaProt))),
-	       not(ciclo(NomAcc)), % Control de ciclo específico para este dominio.
+	       not(ciclo(NomAcc)), % Control de ciclo especï¿½fico para este dominio.
 	       retract(last_action(_)), assert(last_action(NomAcc)),
                alcanzar_todas(Pre, EActual, Prot, [NomAcc|ActionsHeap], PlanPre, ELuegoPlanPre),
                ejecutar(Accion, ELuegoPlanPre, ELuegoPlanMeta),
@@ -113,7 +115,7 @@ ciclo(drop(Obj)):-
 %
 % alcanza(-Accion, +Meta)
 %
-% Retorna una acción que alcanza la meta.
+% Retorna una acciï¿½n que alcanza la meta.
 
 alcanza(Accion, Meta):-
                 action_descr(Accion),
@@ -126,14 +128,14 @@ alcanza(Accion, Meta):-
 %
 % strips_considers(+Action)
 %
-% Establece qué acciones (de las descriptas en
+% Establece quï¿½ acciones (de las descriptas en
 % module_actions_rep_and_projection.pl) son consideradas por el
 % planificador STRIPS.
 %
 % Notar que STRIPS no planifica al nivel de acciones de moviemiento
 % primitivas (move_fwd y turn/2), sino que asume la existencia de una
-% acción de "alto nivel" goto(PosDest), donde PosDest es una posición
-% destino. Ver especificación de goto/1 en
+% acciï¿½n de "alto nivel" goto(PosDest), donde PosDest es una posiciï¿½n
+% destino. Ver especificaciï¿½n de goto/1 en
 % module_actions_rep_and_projection.pl.
 
 
@@ -169,14 +171,14 @@ deshace(Accion, Meta):-
 ejecutar(Accion, EActual, NuevoEActual):-
                  Accion = [_NomAcc, _Pre, Add_list, Del_list],
                  % No tengo que verificar que EActual contenga Pre, ya que
-                 % en esta instancia del algoritmo esto siempre va a ser así.
+                 % en esta instancia del algoritmo esto siempre va a ser asï¿½.
                  union(EActual, Add_list, Aux),
                  subtract(Aux, Del_list, NuevoEActual).
 
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% TESTS (actualmente son inválidos)
+% TESTS (actualmente son invï¿½lidos)
 %
 %
 %test(1, Plan):-
@@ -206,32 +208,3 @@ ejecutar(Accion, EActual, NuevoEActual):-
 %          Metas= [has([agent, me], [treasure, t1])],
 %          EInicial= [has([grave, g], [treasure, t1]), at([grave, g], [20, 20]), at([agent, me], [7,6]), closed([grave, g]), has([dragon, d], [opening_potion, op]), at([dragon, d], [5,10]), at([sleep_potion, sp], [7,6])],
 %          strips(Metas, EInicial, Plan).
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
