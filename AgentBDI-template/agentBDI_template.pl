@@ -367,7 +367,7 @@ high_priority(basic_attack_enemy(Target), 'es prioritario atacar al enemigo'):-
   length(TGList, Num),
   Num > 3. % El enemigo tiene mas de 3 gold
 
-% Acercarse al enemigo si esta cerca de mi home y mi home tiene al menos 1 gold
+% Acercarse al enemigo si esta cerca de mi home y tiene al menos 1 potion, y mi home tiene al menos 1 gold
 high_priority(approach_enemy(Target), 'es prioritario acercarse al enemigo'):-
   atPos([agent, Target], TPos),
   time(CurrentTime),
@@ -383,22 +383,7 @@ high_priority(approach_enemy(Target), 'es prioritario acercarse al enemigo'):-
   has([home, MyColor], [gold, _AnyGold]), % Mi home tiene al menos 1 gold
   has([agent, Target], [potion, _AnyTPotion]). % El enemigo tiene al menos 1 potion
 
-% Acercarse al enemigo si no tiene 1 potion y tiene mas de 3 gold
-high_priority(approach_enemy(Target), 'es prioritario acercarse al enemigo'):-
-  at([agent, Target], _TNode),
-  time(CurrentTime),
-  lastSeen(Target, CurrentTime), % La ultima vez visto al enemigo es ahora
-  property([agent, me], home, MyColor),
-  property([agent, Target], home, TColor),
-  MyColor \= TColor, % Ser de distintos equipos
-  property([agent, Target], life, TLife),
-  TLife > 0, % El enemigo tiene vida
-  not(has([agent, Target], [potion, _AnyTPotion])), % El enemigo no tiene 1 potion
-  findall(TGold, has([agent, Target], [gold, TGold]), TGList),
-  length(TGList, Num),
-  Num > 3. % El enemigo tiene mas de 3 gold
-
-% El enemigo esta regenerando vida en un inn
+% El enemigo esta regenerando vida en un inn y tiene menos de 100 de hp, tengo mas de 150 de hp
 high_priority(goto(NodeID)):-
   at([agent, Target], NodeID),
   time(CurrentTime),
@@ -690,18 +675,18 @@ planify(rest, Plan):- % Planificaci�n para desplazarse a un destino dado
   buscar_plan_desplazamiento(ListaPos,_Plan,PosH),
 	Plan = [goto(PosH), stay].
 
-%Voy a definir las planificaciones de dejar los tesoros en el home
+% Voy a definir las planificaciones de dejar los tesoros en el home
 planify(dejarTesoros(IdHome),Plan):- %Planificacion para dejar un tesoro en el home
   at([home,IdHome],Destino), %Busco la posicion de mi home
   findall(tirarTesoro(IdTesoro,Destino),has([agent,me],[gold,IdTesoro]),PlanDejarTesoros), %Busco todos mis tesoros y lo guardo en la lista para que los pueda tirar
   Plan=[goto(Destino)|PlanDejarTesoros]. % Voy hacia mi home y dejo todos mis tesoros
 
-%Voy a dejar el tesoro especificado en la posicion Destino, si es que yo me encuentro allí
+% Voy a dejar el tesoro especificado en la posicion Destino, si es que yo me encuentro allí
 planify(tirarTesoro(IdTesoro,Destino),Plan):-
   at([agent,me],Destino), %Me aseguro que me encuentro en la posicion del home
   Plan=[drop([gold,IdTesoro])].
 
-%Saquear Home enemigo
+% Saquear Home enemigo
 planify(saquear_home(IdHome),Plan):-
   at([home,IdHome],PosHome),
   has([agent,me],[potion,IdPotion]),
@@ -709,8 +694,8 @@ planify(saquear_home(IdHome),Plan):-
   PlanIntermedio=[goto(PosHome),cast_spell(open([home,IdHome],[potion,IdPotion]))],
   append(PlanIntermedio,AgarrarOros,Plan).
 
-%Abrir tumba
-planify(abrirTumba(IdGrave),Plan):-
+% Abrir tumba
+planify(abrirTumba(IdGrave), Plan):-
   at([grave,IdGrave],PosGrave),
   has([agent,me],[potion,IdPotion]),
   findall(get(Obj),has([grave,IdGrave],Obj),AgarrarOros),
@@ -725,7 +710,7 @@ planify(approach_enemy(Target), Plan):-
 % Atacar enemigo
 planify(basic_attack_enemy(Target), Plan):-
   findall(get(Obj),has([agent,Target],Obj),GetList),
-  Plan = [attack([agent, Target])|GetList].%Si no lo mató entonces el plan de los get falla, sino lo levanta todo
+  Plan = [attack([agent, Target])|GetList]. % Si no lo mató entonces el plan de los get falla, sino lo levanta todo
 
 % Dormir enemigo
 planify(put_to_sleep_enemy(Target), Plan):-
